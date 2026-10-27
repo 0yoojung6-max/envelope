@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나는 어떤 예술 철학자일까?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#F3F4F7; --surface:#FFFFFF; --ink:#1A1D24; --muted:#5D6472; --line:#DDE1E7; --soft:#ECEEF2;
+  --c-plato:#2F55B4; --s-plato:#DFE7FA;
+  --c-tolstoy:#C2416A; --s-tolstoy:#F9DFE7;
+  --c-confucius:#23805A; --s-confucius:#D9F0E5;
+  --c-xunzi:#B0721A; --s-xunzi:#F7E8CD;
+  --c-wilde:#7B3DB3; --s-wilde:#ECDFF8;
+  --c-spingarn:#177A8D; --s-spingarn:#D4EEF3;
+  --cheek:#FF8FA3; --face:#1A1D24; --white:#FFFFFF;
+  --display:"Do Hyeon","Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --serif:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121419; --surface:#1C1F27; --ink:#ECEEF3; --muted:#9EA5B3; --line:#2F3440; --soft:#262A34;
+    --c-plato:#7D9BEA; --s-plato:#1E2A47;
+    --c-tolstoy:#F07FA2; --s-tolstoy:#3E1F2B;
+    --c-confucius:#6FCBA2; --s-confucius:#183829;
+    --c-xunzi:#E4AA55; --s-xunzi:#3A2C14;
+    --c-wilde:#BD92EC; --s-wilde:#30213F;
+    --c-spingarn:#69C4D6; --s-spingarn:#14343B;
+    --face:#1A1D24;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121419; --surface:#1C1F27; --ink:#ECEEF3; --muted:#9EA5B3; --line:#2F3440; --soft:#262A34;
+  --c-plato:#7D9BEA; --s-plato:#1E2A47; --c-tolstoy:#F07FA2; --s-tolstoy:#3E1F2B;
+  --c-confucius:#6FCBA2; --s-confucius:#183829; --c-xunzi:#E4AA55; --s-xunzi:#3A2C14;
+  --c-wilde:#BD92EC; --s-wilde:#30213F; --c-spingarn:#69C4D6; --s-spingarn:#14343B;
+  --face:#1A1D24; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--c-plato);outline-offset:2px}
+.wrap{max-width:480px;margin:0 auto;padding:18px 18px 56px}
+h1,h2,h3{margin:0;font-weight:400}
+p{margin:0}
+.muted{color:var(--muted)}
+.btn{display:block;width:100%;border:none;border-radius:14px;padding:16px 18px;background:var(--ink);color:var(--bg);font-weight:600;font-size:17px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.light{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.linkish{background:none;border:none;color:var(--muted);text-decoration:underline;font-size:14px;padding:8px 0}
+
+/* intro */
+.intro{min-height:88vh;display:flex;flex-direction:column}
+.cast{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:18px -6px 6px}
+.cast svg{width:100%;height:auto;display:block}
+.intro h1{font-family:var(--display);font-size:40px;line-height:1.15;letter-spacing:-.5px;margin-top:10px;word-break:keep-all}
+.intro .sub{margin:12px 0 26px;color:var(--muted);font-size:17px}
+.intro .meta{display:flex;gap:8px;margin-bottom:22px}
+.pill{font-size:13px;padding:4px 11px;border-radius:30px;background:var(--soft);color:var(--muted)}
+.intro .spacer{flex:1}
+
+/* question */
+.qtop{display:flex;align-items:center;gap:12px;margin:6px 0 26px}
+.qtop .back{background:none;border:none;font-size:22px;line-height:1;padding:6px 8px 6px 0;color:var(--muted)}
+.qbar{flex:1;height:6px;background:var(--soft);border-radius:3px;overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--ink);border-radius:3px;transition:width .35s ease}
+.qnum{font-family:var(--display);font-size:18px;color:var(--muted)}
+.qtext{font-family:var(--display);font-size:27px;line-height:1.35;margin-bottom:24px;word-break:keep-all}
+.opt{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:16px 16px;margin-bottom:10px;font-size:16px;line-height:1.5;word-break:keep-all;transition:border-color .15s,transform .15s}
+.opt:active{transform:scale(.985)}
+.opt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.qanim{animation:qin .32s ease both}
+@keyframes qin{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+
+/* lock */
+.lock{text-align:center;padding-top:20px}
+.lock .mystery{width:190px;margin:0 auto 6px}
+.lock h2{font-family:var(--display);font-size:32px;line-height:1.25}
+.lock p.desc{color:var(--muted);margin:12px 0 24px;word-break:keep-all}
+.keyrow{display:flex;gap:8px}
+.keyrow input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);font-size:17px;text-align:center}
+.keyrow .btn{width:auto;flex:0 0 auto;padding:14px 20px}
+.keymsg{min-height:24px;margin-top:10px;font-size:14px;color:var(--c-tolstoy)}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.lockhint{margin-top:26px;font-size:14px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:12px 14px;word-break:keep-all}
+
+/* result */
+.hero{border-radius:26px;padding:22px 20px 26px;text-align:center;position:relative;overflow:hidden}
+.hero .pre{font-size:15px;opacity:.85}
+.hero .charbox{width:230px;margin:6px auto 0}
+.hero .nick{font-family:var(--display);font-size:42px;line-height:1.1;margin-top:4px;letter-spacing:-.5px}
+.badges{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.badge{font-size:14px;font-weight:600;padding:5px 13px;border-radius:30px;background:var(--surface);color:var(--ink)}
+.reveal .charbox{animation:pop .7s cubic-bezier(.2,1.5,.4,1) both}
+.reveal .nick,.reveal .badges{animation:fadeup .5s .35s ease both}
+@keyframes pop{0%{transform:scale(.2) rotate(-12deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.block{background:var(--surface);border-radius:20px;padding:20px;margin-top:14px}
+.block h3{font-family:var(--display);font-size:20px;margin-bottom:8px}
+.lead{font-family:var(--serif);font-size:18px;line-height:1.75;word-break:keep-all}
+.quote{font-family:var(--serif);font-size:16px;line-height:1.8;border-left:4px solid;padding-left:14px;word-break:keep-all}
+.dist .row{display:grid;grid-template-columns:76px 1fr 40px;align-items:center;gap:10px;margin:9px 0;font-size:14px}
+.dist .track{height:10px;background:var(--soft);border-radius:5px;overflow:hidden}
+.dist .fill{height:100%;border-radius:5px;transition:width .8s ease}
+.dist .pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.duo .block{margin-top:0;display:flex;flex-direction:column}
+.duo p{font-size:15px;line-height:1.55;word-break:keep-all}
+.duo h3{font-size:18px;word-break:keep-all}
+.far{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin-top:auto}
+.far svg{width:64px;flex:0 0 auto}
+.far b{font-family:var(--display);font-weight:400;font-size:19px;display:block;line-height:1.2;word-break:keep-all}
+.stancenote{font-size:14px;color:var(--muted);margin-top:10px}
+
+/* meeting */
+.sec-title{font-family:var(--display);font-size:30px;line-height:1.2;margin:8px 0 8px}
+.groupgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.gbtn{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;text-align:left}
+.gbtn b{font-family:var(--display);font-weight:400;font-size:24px;display:block}
+.gbtn span{font-size:13px;color:var(--muted);line-height:1.4;display:block;margin-top:2px}
+.case{background:var(--surface);border-radius:20px;padding:20px;margin-top:14px}
+.case h3{font-family:var(--display);font-size:24px;line-height:1.3;margin-bottom:10px}
+.case p{font-family:var(--serif);font-size:16px;line-height:1.8;word-break:keep-all}
+.ask{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+.ask svg{width:64px;flex:0 0 auto}
+.ask p{font-family:var(--display);font-size:21px;line-height:1.35;word-break:keep-all}
+.verdict{border-radius:20px;padding:20px;margin-top:14px}
+.verdict .vtop{display:flex;align-items:center;gap:12px}
+.verdict .vtop svg{width:76px;flex:0 0 auto}
+.verdict .vlabel{font-size:14px;opacity:.8}
+.verdict .vdec{font-family:var(--display);font-size:24px;line-height:1.25}
+.verdict .vreason{font-family:var(--serif);font-size:16px;line-height:1.8;margin-top:12px;word-break:keep-all}
+.hit{font-family:var(--display);font-size:20px;margin-top:16px;text-align:center}
+textarea{width:100%;min-height:76px;margin-top:6px;border:1.5px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px;resize:vertical}
+.summary{border-radius:26px;padding:24px 20px;text-align:center}
+.summary svg{width:120px;margin:0 auto;display:block}
+.summary .big{font-family:var(--display);font-size:28px;line-height:1.35;margin-top:8px;word-break:keep-all}
+.summary .why{font-family:var(--serif);font-size:16px;line-height:1.7;margin-top:12px;word-break:keep-all}
+.tip{margin-top:14px;font-size:14px;color:var(--muted);text-align:center;word-break:keep-all}
+.gap{height:12px}
+
+/* teacher */
+.qrwrap{text-align:center;padding-top:10px}
+.qrwrap input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);margin:14px 0}
+.qrbox{display:inline-block;background:#fff;padding:16px;border-radius:16px;line-height:0}
+
+@media (prefers-reduced-motion: reduce){
+  .qanim,.reveal .charbox,.reveal .nick,.reveal .badges,.shake{animation:none}
+  .qbar i,.dist .fill{transition:none}
+}
+</style>
+</head>
+<body>
+<main id="app" class="wrap"></main>
+<script>
+(function(){
+"use strict";
+
+/* ===== 사상가 ===== */
+var T = {
+  plato:{name:"플라톤",nick:"마음의 수호자",stance:"moral",
+    intro:"예술이 사람의 품성을 만든다고 믿어요. 아무리 아름다운 작품이라도 마음을 해친다면 걸러 내야 한다고 생각하죠.",
+    core:"예술은 올바른 품성을 위한 삶의 모범을 보여 주어야 하며, 예술가는 도덕적 이상을 모방하여 영혼의 조화를 추구해야 한다.",
+    shake:"지키려는 마음이 누군가의 표현을 막는 쪽으로 기울 때",far:"wilde"},
+  tolstoy:{name:"톨스토이",nick:"감정의 연결자",stance:"moral",
+    intro:"사람과 사람을 잇는 감정이 예술의 가치라고 생각해요. 소수만 즐기는 작품보다 모두의 마음에 닿는 작품을 더 아끼죠.",
+    core:"미각의 만족이 음식의 가치를 정하지 못하듯, 예술의 가치는 즐거움이 아니라 인류의 사랑과 선을 완성하는 데 있다.",
+    shake:"감동적이지만 해로운 메시지를 담은 작품 앞에서",far:"spingarn"},
+  confucius:{name:"공자",nick:"인격의 감식가",stance:"moral",
+    intro:"작품 뒤에 있는 사람을 봐요. 만든 사람의 마음이 바르지 않으면 작품도 온전히 아름다울 수 없다고 느끼죠.",
+    core:"음악은 사람의 성품과 이어져 있다. 사람이 어질지 않으면 예와 음악을 할 수 없다.",
+    shake:"오래 사랑해 온 작품의 작가가 잘못을 저질렀을 때",far:"spingarn"},
+  xunzi:{name:"순자",nick:"공동체의 조율자",stance:"moral",
+    intro:"예술은 함께 사는 사람들을 조화롭게 해야 한다고 생각해요. 들뜬 마음을 다스리고 모두를 하나로 묶는 예술을 좋아하죠.",
+    core:"음악은 사람의 악한 본성을 교화하여 예를 기르고, 사회를 조화롭게 다스리는 바탕이 된다.",
+    shake:"다수가 낯설어하는 새로운 작품 앞에서",far:"wilde"},
+  wilde:{name:"와일드",nick:"자유로운 창조자",stance:"aes",
+    intro:"예술가는 누구의 요구에도 따르지 않아야 한다고 믿어요. 남의 눈치를 보는 순간 독창성은 사라진다고 생각하죠.",
+    core:"다른 사람의 욕구를 만족시키려는 순간 예술가는 예술가이기를 포기한 것이며, 윤리적 공감은 예술가의 독창성을 잃게 한다.",
+    shake:"그 자유가 누군가에게 실제로 상처를 줄 때",far:"plato"},
+  spingarn:{name:"스핑건",nick:"순수한 비평가",stance:"aes",
+    intro:"작품은 작품 그 자체로 평가해야 한다고 생각해요. 작가의 삶이나 도덕의 잣대보다 완성도와 아름다움을 먼저 보죠.",
+    core:"시가 도덕적이라거나 비도덕적이라고 말하는 것은 정삼각형은 도덕적이고 이등변 삼각형은 비도덕적이라고 말하는 것만큼 무의미하다.",
+    shake:"작품이 실제로 누군가를 해칠 때",far:"tolstoy"}
+};
+var ORDER=["plato","tolstoy","confucius","xunzi","wilde","spingarn"];
+function J(w,a,b){var c=w.charCodeAt(w.length-1);var bat=(c>=0xAC00&&c<=0xD7A3)&&((c-0xAC00)%28!==0);return w+(bat?a:b);}
+var STANCE={moral:"도덕주의",aes:"심미주의"};
+
+/* ===== 문항 ===== */
+var Q=[
+ {q:"좋아하던 가수의 과거 잘못이 크게 알려졌다. 노래는 그 잘못과 관련이 없다. 내 플레이리스트에서 그 노래는?",o:[
+  ["그대로 둔다. 노래는 노래일 뿐이다.",{spingarn:1}],
+  ["지운다. 그런 사람이 만든 노래에서 예전 같은 감동을 느낄 수 없다.",{confucius:1}],
+  ["혼자 듣는 건 괜찮지만, 반 응원가나 행사 노래로 쓰는 건 반대한다.",{xunzi:1}],
+  ["그 노래가 많은 사람을 위로해 왔다는 게 더 중요하다.",{tolstoy:1}]]},
+ {q:"미술 수행평가로 작품을 만든다. 나는 어떤 작품을 만들고 싶나?",o:[
+  ["보는 사람이 더 나은 사람이 되고 싶어지는 작품",{plato:1}],
+  ["남이 어떻게 보든 상관없이, 아무도 시도하지 않은 나만의 작품",{wilde:1}],
+  ["형태와 색의 조화가 완벽한 작품. 메시지는 필요 없다.",{spingarn:1}],
+  ["누구든 보고 같은 감정을 느껴 서로 가까워지는 작품",{tolstoy:1}]]},
+ {q:"학교 축제 무대에 올릴 공연을 고른다. 가장 중요한 기준은?",o:[
+  ["다 함께 즐기되, 선을 넘지 않는가",{xunzi:1}],
+  ["관객, 특히 후배들에게 나쁜 영향을 주지 않는가",{plato:1}],
+  ["무대의 완성도가 얼마나 높은가",{spingarn:.5,wilde:.5}],
+  ["공연하는 사람들이 진심을 담을 수 있는가",{confucius:1}]]},
+ {q:"웹툰에 폭력적인 장면이 점점 많아져서 청소년에게 해롭다는 비판이 나왔다. 내 생각은?",o:[
+  ["청소년이 따라 할 수 있으니 수위를 조절해야 한다.",{plato:1}],
+  ["이야기에 필요한 장면이라면 작가가 정할 일이다. 독자 눈치를 보면 작품이 망가진다.",{wilde:1}],
+  ["장면이 폭력적인지보다 작품이 잘 만들어졌는지를 봐야 한다.",{spingarn:1}],
+  ["그 장면이 사람들 사이에 공감을 만드는지, 상처를 주는지가 중요하다.",{tolstoy:1}]]},
+ {q:"존경받던 화가가 사실은 남을 괴롭히며 살았다는 기록이 발견되었다. 그 그림은?",o:[
+  ["그림의 가치는 그대로다. 그림에 도덕을 묻는 것 자체가 이상하다.",{spingarn:1}],
+  ["마음이 비뚤어진 사람의 그림이 정말 아름다울 수 있을까 싶다.",{confucius:1}],
+  ["예술가는 원래 세상의 규칙 밖에 있는 사람이다. 그 자유가 있어야 걸작이 나온다.",{wilde:1}],
+  ["학생들이 그런 사람을 본받을까 봐 걱정된다.",{plato:1}]]},
+ {q:"친구가 ‘유치하다’는 평을 듣는 노래를 좋아한다. 하지만 그 노래 덕분에 힘든 시기를 버텼다고 한다. 이 노래는 좋은 예술일까?",o:[
+  ["그렇다. 사람의 마음을 움직이고 이어 줬다면 좋은 예술이다.",{tolstoy:1}],
+  ["위로가 된 건 좋지만, 그것과 작품의 수준은 별개다.",{spingarn:1}],
+  ["듣는 사람의 마음을 바로잡아 줬다면 좋은 예술이다.",{xunzi:1}],
+  ["많은 사람의 입맛에 맞추려고 만든 노래라면 좋은 예술이라 하기 어렵다.",{wilde:1}]]},
+ {q:"국어 교과서에 실을 시를 고른다. 아주 아름답지만 내용이 퇴폐적인 시가 있다면?",o:[
+  ["싣는다. 아름다움이 기준이다.",{spingarn:.5,wilde:.5}],
+  ["싣지 않는다. 학생이 배우는 글은 본받을 만해야 한다.",{plato:1}],
+  ["시인이 어떤 사람이었는지 먼저 알아본다.",{confucius:1}],
+  ["졸업식처럼 다 함께 낭독하는 자리에 어울리는 시인지 본다.",{xunzi:1}]]},
+ {q:"내가 생각하는 최고의 예술가는?",o:[
+  ["누구의 요구에도 굽히지 않고 자기 세계를 끝까지 지킨 사람",{wilde:1}],
+  ["작품만큼 삶도 아름다웠던 사람",{confucius:1}],
+  ["수많은 사람을 같은 감정으로 묶어 낸 사람",{tolstoy:1}],
+  ["사람들을 더 나은 방향으로 이끈 사람",{plato:.5,xunzi:.5}]]}
+];
+/* 사상가별 최대 점수(균형 보정용) */
+var MAX={}; ORDER.forEach(function(k){MAX[k]=0;});
+Q.forEach(function(q){q.o.forEach(function(o){for(var k in o[1])MAX[k]+=o[1][k];});});
+
+/* ===== 철학자 회의 안건 ===== */
+var CASES={
+ fairy:{title:"오래된 동화, 그대로 읽어도 될까?",
+  text:"한 출판사가 오래전에 쓰인 유명 동화를 다시 펴내며 정신 건강, 신체 묘사, 성별과 인종에 관한 표현을 고쳤다. 우리 학교 도서관은 이 동화를 추천 도서로 올리려 한다.",
+  src:"교과서 149쪽 ‘생활과 만난 윤리’",
+  question:"원작을 그대로 추천 도서로 올려도 될까?",
+  opts:{yes:"원작 그대로 올린다",cond:"해설을 붙여 원작을 올린다",no:"원작은 안 된다. 수정판을 올린다"},
+  v:{plato:["no","아이들이 읽는 이야기는 품성의 모범이 되어야 해요. 편견을 심을 수 있는 표현은 그대로 들려줘선 안 된다고 볼 거예요."],
+     tolstoy:["no","예술은 사람들을 사랑으로 이어야 해요. 누군가를 깎아내리는 감정을 퍼뜨리는 표현은 좋은 예술의 조건에 어긋난다고 볼 거예요."],
+     confucius:["no","예술은 인격을 기르는 길이에요. 읽는 사람의 어진 마음을 해치는 표현이라면 다듬어서 읽혀야 한다고 볼 거예요."],
+     xunzi:["cond","예술의 역할은 본성을 교화하는 데 있어요. 바른 방향을 잡아 주는 해설이 함께라면 원작도 배움의 재료가 될 수 있다고 볼 거예요."],
+     wilde:["yes","시대의 요구에 맞춰 작품을 고치는 건 작가의 독창성을 지우는 일이에요. 원작은 원작 그대로여야 한다고 볼 거예요."],
+     spingarn:["yes","작품에 도덕의 잣대를 대는 것 자체가 무의미해요. 도덕적인 이유로 작품을 걸러 낼 수 없다고 볼 거예요."]}},
+ song:{title:"「고향의 봄」, 계속 불러도 될까?",
+  text:"개교기념 음악회 합창곡 후보로 「고향의 봄」이 올라왔다. 많은 사람이 불러 온 동요지만, 작곡가 홍난파는 친일 행적으로 『친일인명사전』에 이름이 올라 있다. 노래 자체에는 친일적인 내용이 없다.",
+  src:"",
+  question:"음악회에서 이 곡을 불러도 될까?",
+  opts:{yes:"그대로 부른다",cond:"작곡가에 대해 알리고 부른다",no:"다른 곡으로 바꾼다"},
+  v:{plato:["yes","기준은 노래가 무엇을 보여 주느냐예요. 이 노래가 담은 건 고향을 그리는 마음이니, 듣는 사람의 품성을 해치지 않는다고 볼 거예요."],
+     tolstoy:["yes","이 노래는 오랫동안 수많은 사람을 그리움이라는 같은 감정으로 이어 왔어요. 사람을 잇는 감정을 전한다면 가치 있는 예술이라고 볼 거예요."],
+     confucius:["cond","음악은 그것을 하는 사람의 마음과 떨어질 수 없어요. 작곡가의 잘못을 분명히 알고 바른 마음으로 부른다면 받아들일 수 있다고 볼 거예요."],
+     xunzi:["no","학교 음악회는 공동체가 하나 되는 자리예요. 논란이 있는 곡은 화합 대신 갈등을 부를 수 있으니 다른 곡을 고르는 게 낫다고 볼 거예요."],
+     wilde:["yes","작품의 가치는 작품 자체의 아름다움에 있어요. 작곡가의 삶을 이유로 노래를 평가해선 안 된다고 볼 거예요."],
+     spingarn:["yes","선율에 도덕을 묻는 건 삼각형에 도덕을 묻는 것과 같아요. 작곡가의 도덕성으로 공연 여부를 정할 수 없다고 볼 거예요."]}}
+};
+var GROUP_CASE={1:"fairy",2:"fairy",3:"song",4:"song"};
+var VKEYS=["yes","cond","no"];
+
+/* ===== 열쇠 ===== */
+function norm(s){return String(s||"").replace(/[\s·.,'"‘’“”!?~-]/g,"");}
+var KEYS=["예술지상주의","열려라참깨"];
+
+/* ===== 캐릭터 SVG (유형별 오리지널 마스코트) ===== */
+function face(){
+  return '<ellipse cx="84" cy="110" rx="6" ry="7" fill="var(--face)"/><ellipse cx="116" cy="110" rx="6" ry="7" fill="var(--face)"/>'+
+  '<circle cx="86" cy="107.5" r="2" fill="#fff"/><circle cx="118" cy="107.5" r="2" fill="#fff"/>'+
+  '<ellipse cx="72" cy="126" rx="8" ry="5" fill="var(--cheek)" opacity=".45"/><ellipse cx="128" cy="126" rx="8" ry="5" fill="var(--cheek)" opacity=".45"/>'+
+  '<path d="M93 124 Q100 131 107 124" fill="none" stroke="var(--face)" stroke-width="3" stroke-linecap="round"/>';
+}
+function body(c){
+  return '<ellipse cx="100" cy="186" rx="52" ry="7" fill="var(--face)" opacity=".10"/>'+
+  '<path d="M100 52 C146 52 164 92 164 130 C164 166 138 184 100 184 C62 184 36 166 36 130 C36 92 54 52 100 52Z" fill="'+c+'"/>'+
+  '<path d="M100 120 C126 120 140 140 140 158 C140 176 122 184 100 184 C78 184 60 176 60 158 C60 140 74 120 100 120Z" fill="#fff" opacity=".16"/>';
+}
+function charSVG(k,opts){
+  opts=opts||{};
+  var c="var(--c-"+k+")", s="var(--s-"+k+")", extra="", top="", front="";
+  if(k==="plato"){ /* 수호자: 잎 관과 하트 방패 */
+    top='<path d="M70 62 Q80 44 96 50" fill="none" stroke="'+c+'" stroke-width="5" stroke-linecap="round"/><path d="M130 62 Q120 44 104 50" fill="none" stroke="'+c+'" stroke-width="5" stroke-linecap="round"/>'+
+        '<ellipse cx="78" cy="50" rx="7" ry="4" transform="rotate(-35 78 50)" fill="#6FBF73"/><ellipse cx="90" cy="45" rx="7" ry="4" transform="rotate(-10 90 45)" fill="#6FBF73"/><ellipse cx="122" cy="50" rx="7" ry="4" transform="rotate(35 122 50)" fill="#6FBF73"/><ellipse cx="110" cy="45" rx="7" ry="4" transform="rotate(10 110 45)" fill="#6FBF73"/>';
+    front='<path d="M138 128 L174 128 L174 150 C174 168 158 178 156 179 C154 178 138 168 138 150Z" fill="#fff" stroke="'+c+'" stroke-width="4" stroke-linejoin="round"/>'+
+          '<path d="M156 165 C146 157 145 150 149 146 C152 143 155 145 156 147 C157 145 160 143 163 146 C167 150 166 157 156 165Z" fill="var(--c-tolstoy)"/>';
+  } else if(k==="tolstoy"){ /* 연결자: 실로 이어진 하트들 */
+    extra='<path d="M44 140 C14 120 22 76 40 70" fill="none" stroke="var(--c-tolstoy)" stroke-width="3" stroke-dasharray="1 7" stroke-linecap="round"/>'+
+          '<path d="M156 140 C186 120 178 76 160 70" fill="none" stroke="var(--c-tolstoy)" stroke-width="3" stroke-dasharray="1 7" stroke-linecap="round"/>';
+    top='<path d="M40 74 C30 66 30 58 35 55 C38 53 40 56 40 57 C41 56 43 53 46 55 C51 58 50 66 40 74Z" fill="'+c+'"/>'+
+        '<path d="M160 74 C150 66 150 58 155 55 C158 53 160 56 160 57 C161 56 163 53 166 55 C171 58 170 66 160 74Z" fill="'+c+'"/>'+
+        '<path d="M100 40 C88 31 88 22 94 19 C97 17 100 20 100 22 C100 20 103 17 106 19 C112 22 112 31 100 40Z" fill="'+c+'" opacity=".85"/>';
+    front='<path d="M58 150 Q100 170 142 150" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>';
+  } else if(k==="confucius"){ /* 감식가: 둥근 안경과 돋보기 */
+    front='<circle cx="84" cy="110" r="15" fill="none" stroke="var(--face)" stroke-width="3.5"/><circle cx="116" cy="110" r="15" fill="none" stroke="var(--face)" stroke-width="3.5"/><path d="M99 110 L101 110" stroke="var(--face)" stroke-width="3.5"/>'+
+          '<line x1="160" y1="170" x2="176" y2="188" stroke="#8A5A2B" stroke-width="8" stroke-linecap="round"/><circle cx="150" cy="156" r="20" fill="'+s+'" fill-opacity=".85" stroke="#B8BFCB" stroke-width="6"/><path d="M141 149 Q146 143 153 144" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>';
+    top='<circle cx="100" cy="50" r="10" fill="'+c+'"/><rect x="92" y="56" width="16" height="6" rx="3" fill="var(--face)" opacity=".7"/>';
+  } else if(k==="xunzi"){ /* 조율자: 나비넥타이와 지휘봉, 음표 */
+    front='<path d="M86 146 L100 153 L86 160Z M114 146 L100 153 L114 160Z" fill="var(--c-tolstoy)"/><circle cx="100" cy="153" r="4" fill="var(--c-tolstoy)"/>'+
+          '<line x1="150" y1="150" x2="182" y2="96" stroke="var(--face)" stroke-width="4" stroke-linecap="round"/><circle cx="150" cy="150" r="7" fill="#fff" stroke="var(--face)" stroke-width="3"/>';
+    top='<g fill="'+c+'" transform="translate(-22 -14)"><ellipse cx="44" cy="84" rx="7" ry="5.5" transform="rotate(-20 44 84)"/><rect x="49" y="58" width="3.5" height="27" rx="1.5"/><path d="M49 58 Q60 62 58 72 Q56 64 49 64Z"/></g>'+
+        '<g fill="'+c+'" opacity=".8"><ellipse cx="164" cy="58" rx="6" ry="4.5" transform="rotate(-20 164 58)"/><rect x="168.5" y="36" width="3" height="23" rx="1.5"/><ellipse cx="180" cy="54" rx="6" ry="4.5" transform="rotate(-20 180 54)"/><rect x="184.5" y="32" width="3" height="23" rx="1.5"/><rect x="168.5" y="32" width="19" height="5" rx="2"/></g>';
+  } else if(k==="wilde"){ /* 창조자: 베레모, 붓, 반짝임 */
+    top='<ellipse cx="96" cy="60" rx="40" ry="14" transform="rotate(-8 96 60)" fill="var(--face)"/><circle cx="100" cy="44" r="5" fill="var(--face)"/>'+
+        '<path d="M40 52 L43 61 L52 64 L43 67 L40 76 L37 67 L28 64 L37 61Z" fill="#F5B83D"/><path d="M170 82 L172 88 L178 90 L172 92 L170 98 L168 92 L162 90 L168 88Z" fill="#F5B83D"/>';
+    front='<line x1="140" y1="168" x2="178" y2="112" stroke="#8A5A2B" stroke-width="6" stroke-linecap="round"/><path d="M178 112 L188 96 Q192 102 184 116Z" fill="var(--c-tolstoy)"/><rect x="171" y="113" width="12" height="7" rx="2" transform="rotate(-56 177 116)" fill="#B8BFCB"/>'+
+          '<circle cx="62" cy="160" r="7" fill="#F5B83D"/><circle cx="74" cy="168" r="5" fill="var(--c-spingarn)"/><circle cx="58" cy="172" r="4" fill="var(--c-tolstoy)"/>';
+  } else if(k==="spingarn"){ /* 비평가: 외알 안경과 정삼각형 */
+    front='<circle cx="116" cy="110" r="13" fill="none" stroke="#D4A62A" stroke-width="3.5"/><path d="M129 112 Q140 130 134 150" fill="none" stroke="#D4A62A" stroke-width="2"/>'+
+          '<path d="M30 176 L58 128 L86 176Z" fill="'+s+'" stroke="var(--face)" stroke-width="4" stroke-linejoin="round"/><path d="M50 166 L58 152 L66 166Z" fill="'+c+'"/>';
+    top='<circle cx="156" cy="58" r="15" fill="#fff" stroke="'+c+'" stroke-width="3.5"/><path d="M149 58 L154 63 L164 52" fill="none" stroke="'+c+'" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  var label = opts.label ? ' role="img" aria-label="'+opts.label+'"' : ' aria-hidden="true"';
+  return '<svg viewBox="0 0 200 200"'+label+'>'+extra+body(c)+top+face()+front+'</svg>';
+}
+function mysterySVG(){
+  return '<svg viewBox="0 0 200 200" role="img" aria-label="아직 공개되지 않은 유형"><ellipse cx="100" cy="186" rx="52" ry="7" fill="var(--face)" opacity=".10"/>'+
+  '<path d="M100 52 C146 52 164 92 164 130 C164 166 138 184 100 184 C62 184 36 166 36 130 C36 92 54 52 100 52Z" fill="var(--soft)" stroke="var(--line)" stroke-width="3" stroke-dasharray="6 7"/>'+
+  '<text x="100" y="146" text-anchor="middle" font-family="Do Hyeon, sans-serif" font-size="78" fill="var(--muted)">?</text>'+
+  '<g transform="translate(0 10)"><rect x="80" y="20" width="40" height="34" rx="8" fill="var(--ink)"/><path d="M88 20 V12 a12 12 0 0 1 24 0 V20" fill="none" stroke="var(--ink)" stroke-width="6"/><circle cx="100" cy="35" r="4.5" fill="var(--bg)"/><rect x="98" y="37" width="4" height="9" rx="2" fill="var(--bg)"/></g></svg>';
+}
+
+/* ===== 상태 ===== */
+var KEY="art-philo-v1";
+function fresh(){return {screen:"intro",qi:0,ans:[],unlocked:false,group:null,pred:null,mine:null,why:""};}
+var S=fresh();
+try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);if(o&&o.screen)S=Object.assign(fresh(),o);}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function go(patch,opt){Object.assign(S,patch);save();render(opt);window.scrollTo(0,0);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+
+function scores(){
+  var raw={}; ORDER.forEach(function(k){raw[k]=0;});
+  S.ans.forEach(function(ai,qi){ if(ai==null)return; var m=Q[qi].o[ai][1]; for(var k in m)raw[k]+=m[k]; });
+  var pct={}; ORDER.forEach(function(k){pct[k]=MAX[k]?raw[k]/MAX[k]:0;});
+  return pct;
+}
+function topType(){
+  var p=scores(), best=null;
+  ORDER.forEach(function(k){ if(best===null||p[k]>p[best]+1e-9)best=k; });
+  var tied=ORDER.filter(function(k){return Math.abs(p[k]-p[best])<1e-9;});
+  if(tied.length>1){
+    for(var qi=Q.length-1;qi>=0;qi--){
+      var ai=S.ans[qi]; if(ai==null)continue;
+      var m=Q[qi].o[ai][1], pick=tied.filter(function(k){return m[k];});
+      if(pick.length===1)return pick[0];
+      if(pick.length>1){tied=pick;}
+    }
+    return tied[0];
+  }
+  return best;
+}
+
+/* ===== 화면 ===== */
+var app=document.getElementById("app");
+
+function vIntro(){
+  return '<section class="intro"><div class="cast">'+ORDER.map(function(k){return charSVG(k);}).join("")+'</div>'+
+  '<h1>나는 어떤 예술 철학자일까?</h1>'+
+  '<p class="sub">예술과 도덕 사이, 여러분은 어디에 서 있나요? 여덟 가지 상황에 솔직하게 답해 보세요.</p>'+
+  '<div class="meta"><span class="pill">8문항</span><span class="pill">2분</span><span class="pill">정답 없음</span></div>'+
+  '<div class="spacer"></div>'+
+  '<button class="btn" data-act="start">테스트 시작</button>'+
+  '<button class="linkish" data-act="qr" style="margin-top:14px">교사용 입장 QR</button></section>';
+}
+function vQuestion(){
+  var q=Q[S.qi], cur=S.ans[S.qi];
+  return '<div class="qtop"><button class="back" data-act="prevq" aria-label="이전 문항">‹</button><div class="qbar"><i style="width:'+((S.qi)/Q.length*100)+'%"></i></div><span class="qnum">'+(S.qi+1)+'/'+Q.length+'</span></div>'+
+  '<div class="qanim"><h2 class="qtext">'+esc(q.q)+'</h2>'+
+  q.o.map(function(o,i){return '<button class="opt" aria-pressed="'+(cur===i)+'" data-act="answer" data-i="'+i+'">'+esc(o[0])+'</button>';}).join("")+'</div>';
+}
+function vLock(){
+  return '<section class="lock"><div class="mystery">'+mysterySVG()+'</div>'+
+  '<h2>분석이 끝났어요.<br>결과는 봉인되었습니다.</h2>'+
+  '<p class="desc">결과를 여는 열쇠는 오늘 배울 개념 안에 있어요. 선생님이 신호를 주면 열쇠를 넣어 보세요.</p>'+
+  '<div class="keyrow" id="keyrow"><input id="keyin" type="text" autocomplete="off" placeholder="열쇠 입력" aria-label="열쇠 입력"><button class="btn" data-act="unlock">열기</button></div>'+
+  '<p class="keymsg" id="keymsg" role="status"></p>'+
+  '<p class="lockhint">기다리는 동안 휴대폰은 잠시 내려 두세요. 내 결과가 누구일지 짐작하며 수업을 들어 보세요.</p>'+
+  '<button class="linkish" data-act="redo">답을 다시 고르기</button></section>';
+}
+function vResult(reveal){
+  var k=topType(), t=T[k], p=scores(), f=T[t.far];
+  var bars=ORDER.slice().sort(function(a,b){return p[b]-p[a];}).map(function(x){
+    var v=Math.round(p[x]*100);
+    return '<div class="row"><span>'+T[x].name+'</span><div class="track"><div class="fill" style="width:'+v+'%;background:var(--c-'+x+')"></div></div><span class="pct">'+v+'%</span></div>';
+  }).join("");
+  return '<section class="hero'+(reveal?" reveal":"")+'" style="background:var(--s-'+k+')">'+
+  '<p class="pre">나의 예술 철학자 유형은</p><div class="charbox">'+charSVG(k,{label:t.nick+" 캐릭터"})+'</div>'+
+  '<h1 class="nick" style="color:var(--c-'+k+')">'+t.nick+'</h1>'+
+  '<div class="badges"><span class="badge">'+t.name+'형</span><span class="badge" style="color:var(--c-'+k+')">'+STANCE[t.stance]+'</span></div></section>'+
+  '<div class="block"><p class="lead">'+esc(t.intro)+'</p></div>'+
+  '<div class="block"><h3>'+J(t.name,'은','는')+' 이렇게 말했어요</h3><p class="quote" style="border-color:var(--c-'+k+')">'+esc(t.core)+'</p>'+
+  '<p class="stancenote">'+(t.stance==="moral"?"도덕주의: 미적 가치와 도덕적 가치가 밀접하다고 보는 입장":"심미주의: 예술은 윤리로부터 분리되어 미적 가치로 판단해야 한다는 입장")+'</p></div>'+
+  '<div class="duo"><div class="block"><h3>흔들리는 지점</h3><p>'+esc(t.shake)+'</p></div>'+
+  '<div class="block"><h3>가장 먼 철학자</h3><div class="far">'+charSVG(t.far)+'<div><b style="color:var(--c-'+t.far+')">'+f.nick+'</b><span class="muted" style="font-size:13px">'+f.name+'형</span></div></div></div></div>'+
+  '<div class="block dist"><h3>나의 판단 성향</h3>'+bars+'</div>'+
+  '<div style="text-align:center;margin-top:22px"><button class="linkish" data-act="reset">처음부터 다시 하기</button></div>';
+}
+function vGroup(){
+  return '<h2 class="sec-title">철학자 회의</h2><p class="muted">이제 여러분의 철학자와 함께 실제 안건을 판단합니다. 우리 모둠 번호를 고르세요.</p>'+
+  '<div class="groupgrid">'+[1,2,3,4].map(function(g){return '<button class="gbtn" data-act="group" data-g="'+g+'"><b>'+g+'모둠</b><span>'+esc(CASES[GROUP_CASE[g]].title)+'</span></button>';}).join("")+'</div>'+
+  '<div class="gap"></div><button class="btn light" data-act="toResult">내 결과 다시 보기</button>';
+}
+function caseBlock(c){
+  return '<div class="case"><h3>'+esc(c.title)+'</h3><p>'+esc(c.text)+'</p>'+(c.src?'<p class="muted" style="font-family:var(--sans);font-size:13px;margin-top:8px">'+esc(c.src)+'</p>':'')+'</div>';
+}
+function vPredict(){
+  var k=topType(), t=T[k], c=CASES[GROUP_CASE[S.group]];
+  return '<h2 class="sec-title">'+S.group+'모둠의 안건</h2>'+caseBlock(c)+
+  '<div class="ask">'+charSVG(k)+'<p>'+J(t.name,'이라면','라면')+' 이 안건에 뭐라고 할까요? 예측해 보세요.</p></div>'+
+  '<p class="muted" style="margin-bottom:10px;font-size:15px">'+esc(c.question)+'</p>'+
+  VKEYS.map(function(v){return '<button class="opt" aria-pressed="'+(S.pred===v)+'" data-act="pred" data-v="'+v+'">'+esc(c.opts[v])+'</button>';}).join("")+
+  '<div class="gap"></div><button class="btn" data-act="toCheck" '+(S.pred?"":"disabled")+'>'+t.name+'의 답 확인하기</button>';
+}
+function vCheck(){
+  var k=topType(), t=T[k], c=CASES[GROUP_CASE[S.group]], v=c.v[k], ok=S.pred===v[0];
+  return '<h2 class="sec-title">'+t.name+'의 판단</h2>'+
+  '<div class="verdict" style="background:var(--s-'+k+')"><div class="vtop">'+charSVG(k)+'<div><p class="vlabel">'+t.name+'의 관점에서 보면</p><p class="vdec" style="color:var(--c-'+k+')">'+esc(c.opts[v[0]])+'</p></div></div>'+
+  '<p class="vreason">'+esc(v[1])+'</p></div>'+
+  '<p class="hit">'+(ok?"예측 성공! "+J(t.name,"을","를")+" 제대로 이해했어요.":"예측과 달랐어요.<br><span class=\"muted\" style=\"font-family:var(--sans);font-size:15px\">내가 예측한 답: "+esc(c.opts[S.pred])+"</span>")+'</p>'+
+  '<div class="gap"></div><button class="btn" data-act="toMine">그런데, 진짜 나는?</button>';
+}
+function vMine(){
+  var k=topType(), t=T[k], c=CASES[GROUP_CASE[S.group]];
+  return '<h2 class="sec-title">그런데, 진짜 나는?</h2><p class="muted">'+t.name+'형이라고 해서 '+J(t.name,'과','와')+' 같은 판단을 할 필요는 없어요. 안건을 다시 보고 나의 판단을 고르세요.</p>'+
+  '<p style="margin:18px 0 10px;font-weight:600">'+esc(c.question)+'</p>'+
+  VKEYS.map(function(v){return '<button class="opt" aria-pressed="'+(S.mine===v)+'" data-act="mine" data-v="'+v+'">'+esc(c.opts[v])+'</button>';}).join("")+
+  '<label for="why" style="display:block;margin-top:16px;font-size:15px;font-weight:600">이유를 한 줄로</label>'+
+  '<textarea id="why" maxlength="80" placeholder="모둠 친구들에게 말할 이유를 적어 보세요">'+esc(S.why)+'</textarea>'+
+  '<div class="gap"></div><button class="btn" id="mineBtn" data-act="toSummary" '+(S.mine?"":"disabled")+'>나의 판단 카드 만들기</button>';
+}
+function vSummary(){
+  var k=topType(), t=T[k], c=CASES[GROUP_CASE[S.group]], tv=c.v[k][0], same=S.mine===tv;
+  var line = same ? '나는 <span style="color:var(--c-'+k+')">'+t.name+'형</span>이고, 이 안건에서도 '+J(t.name,'과','와')+' 같은 판단을 했다.'
+                  : '나는 <span style="color:var(--c-'+k+')">'+t.name+'형</span>이지만, 이 안건에서는 '+J(t.name,'과','와')+' 다른 판단을 했다.';
+  return '<section class="summary" style="background:var(--s-'+k+')">'+charSVG(k)+
+  '<p class="big">'+line+'</p>'+
+  '<div class="badges" style="margin-top:14px"><span class="badge">'+t.name+': '+esc(c.opts[tv])+'</span><span class="badge">나: '+esc(c.opts[S.mine])+'</span></div>'+
+  (S.why.trim()?'<p class="why">“'+esc(S.why.trim())+'”</p>':'')+'</section>'+
+  '<p class="tip">이 화면을 모둠 친구들에게 보여 주며 한 사람씩 이야기해 보세요. “내 철학자는 이렇게 봤고, 나는 이렇게 생각해.”</p>'+
+  '<div class="gap"></div><button class="btn light" data-act="toMine">판단 다시 고르기</button>'+
+  '<div style="text-align:center;margin-top:18px"><button class="linkish" data-act="reset">처음부터 다시 하기</button></div>';
+}
+var QRLINK="art-philo-qrlink";
+function vQR(){
+  var link=""; try{link=localStorage.getItem(QRLINK)||"";}catch(e){}
+  if(!link && /^https?:/.test(location.protocol)) link=location.href.split("#")[0];
+  return '<section class="qrwrap"><h2 class="sec-title">QR을 찍고 들어오세요</h2>'+
+  '<div class="qrbox" id="qrbox" aria-label="입장 QR 코드"></div>'+
+  '<input id="qrlink" type="url" placeholder="이 사이트의 주소" value="'+esc(link)+'" aria-label="공유 링크">'+
+  '<button class="btn light" data-act="home">돌아가기</button></section>';
+}
+
+function render(opt){
+  opt=opt||{};
+  var v;
+  switch(S.screen){
+    case "q":v=vQuestion();break;
+    case "lock":v=vLock();break;
+    case "result":v=vResult(opt.reveal);break;
+    case "group":v=vGroup();break;
+    case "predict":v=vPredict();break;
+    case "check":v=vCheck();break;
+    case "mine":v=vMine();break;
+    case "summary":v=vSummary();break;
+    case "qr":v=vQR();break;
+    default:v=vIntro();
+  }
+  app.innerHTML=v;
+  if(S.screen==="lock"){
+    var ki=document.getElementById("keyin");
+    ki.addEventListener("keydown",function(e){if(e.key==="Enter")tryUnlock();});
+  }
+  if(S.screen==="mine"){
+    var w=document.getElementById("why");
+    w.addEventListener("input",function(){S.why=w.value;save();});
+  }
+  if(S.screen==="qr"){
+    var li=document.getElementById("qrlink");
+    var draw=function(){var b=document.getElementById("qrbox");b.innerHTML="";var l=li.value.trim();try{localStorage.setItem(QRLINK,l);}catch(e){}
+      if(!l){b.style.display="none";return;} b.style.display="";
+      if(typeof window.QRCode==="function"){try{new window.QRCode(b,{text:l,width:260,height:260,correctLevel:window.QRCode.CorrectLevel.M});}catch(e){b.textContent="QR을 만들 수 없는 링크예요.";}}
+      else b.textContent="QR 도구를 불러오지 못했어요.";};
+    li.addEventListener("input",draw); draw();
+  }
+}
+
+function tryUnlock(){
+  var ki=document.getElementById("keyin"), msg=document.getElementById("keymsg"), row=document.getElementById("keyrow");
+  var v=norm(ki.value);
+  if(KEYS.indexOf(v)>=0){ go({screen:"result",unlocked:true},{reveal:true}); return; }
+  msg.textContent = v ? "열쇠가 맞지 않아요. 오늘 배운 개념을 떠올려 보세요." : "열쇠를 입력하세요.";
+  row.classList.remove("shake"); void row.offsetWidth; row.classList.add("shake");
+}
+
+var armed=null;
+app.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]"); if(!b||b.disabled)return;
+  var a=b.getAttribute("data-act");
+  switch(a){
+    case "start": go({screen:"q",qi:0}); break;
+    case "answer":
+      var i=+b.getAttribute("data-i"); S.ans[S.qi]=i; save();
+      b.setAttribute("aria-pressed","true");
+      setTimeout(function(){ if(S.qi<Q.length-1) go({qi:S.qi+1}); else go({screen:"result"},{reveal:true}); },180);
+      break;
+    case "prevq": if(S.qi>0) go({qi:S.qi-1}); else go({screen:"intro"}); break;
+    case "unlock": tryUnlock(); break;
+    case "redo": go({screen:"q",qi:0}); break;
+    case "meeting": go({screen:S.group?"predict":"group"}); break;
+    case "toResult": go({screen:"result"}); break;
+    case "group": go({screen:"predict",group:+b.getAttribute("data-g"),pred:null,mine:null,why:""}); break;
+    case "pred": S.pred=b.getAttribute("data-v"); save(); render(); break;
+    case "toCheck": go({screen:"check"}); break;
+    case "toMine": go({screen:"mine"}); break;
+    case "mine": S.mine=b.getAttribute("data-v"); save(); render(); break;
+    case "toSummary": go({screen:"summary"}); break;
+    case "qr": go({screen:"qr"}); break;
+    case "home": go({screen:S.ans.length>=Q.length?"result":(S.ans.length?"q":"intro")}); break;
+    case "reset":
+      if(armed===b){ armed=null; S=fresh(); save(); render(); window.scrollTo(0,0); }
+      else { armed=b; var o=b.textContent; b.textContent="한 번 더 누르면 처음부터 시작해요"; setTimeout(function(){ if(armed===b){armed=null; if(b.isConnected)b.textContent=o;} },3000); }
+      break;
+  }
+});
+
+/* 이전 버전 상태 보정 */
+if(S.screen==="q"&&(S.qi<0||S.qi>=Q.length))S.qi=0;
+if(["lock","result","group","predict","check","mine","summary"].indexOf(S.screen)>=0)S.screen=(S.ans.length>=Q.length?"result":"intro");
+render();
+})();
+</script>
+</body>
+</html>

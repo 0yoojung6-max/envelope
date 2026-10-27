@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리 학교 벽화, 어떻게 해야 할까?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- 실시간 연동(Firebase). CONFIG.firebase를 채우면 자동으로 사용됩니다. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ================================================================
+   설정: 이 부분만 고치면 됩니다. (README 참고)
+   ================================================================ */
+window.CONFIG = {
+  sessionId: "class1",           // 리허설과 본 수업을 나누려면 이름을 바꾸세요
+  groupCount: 4,
+  // Firebase 실시간 데이터베이스 설정 (교사 제어, 타이머 동기화, 모둠 결과 모으기)
+  firebase: null,
+  /* 예시
+  firebase: {
+  apiKey: "AIzaSyCtLSE3pT5S_jJkDjZvfwmgOK7Zc0vJ4Iw",
+  authDomain: "envelope-33fe8.firebaseapp.com",
+  databaseURL: "https://envelope-33fe8-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "envelope-33fe8",
+  storageBucket: "envelope-33fe8.firebasestorage.app",
+  messagingSenderId: "438433623115",
+  appId: "1:438433623115:web:1cbebeacbabbbf385af1ce",
+  measurementId: "G-7ZGEC91K41"
+},
+  */
+  aiEndpoint: "/api/chat",       // 길라잡이(AI) 서버 함수
+  reasonMinLength: 15,           // 잠정·최종 결론 이유의 최소 글자 수 (띄어쓰기 제외)
+  chatMinLength: 6,              // 채팅 메시지의 최소 글자 수
+  chatMaxTurns: 4,               // 첫 결론 뒤 모둠이 AI에게 보낼 수 있는 반론 횟수
+  timerDefault: 120,             // 타이머 기본 시간(초)
+  board: { comments: true, likes: true }   // 우리 반 활동 보드: 댓글·공감 사용 여부
+};
+</script>
+<style>
+:root{
+  --bg:#F3F4F7; --surface:#FFFFFF; --ink:#1A1D24; --muted:#5D6472; --line:#DDE1E7; --soft:#ECEEF2;
+  --c-plato:#2F55B4; --s-plato:#DFE7FA; --c-tolstoy:#C2416A; --s-tolstoy:#F9DFE7;
+  --c-confucius:#23805A; --s-confucius:#D9F0E5; --c-xunzi:#B0721A; --s-xunzi:#F7E8CD;
+  --c-wilde:#7B3DB3; --s-wilde:#ECDFF8; --c-spingarn:#177A8D; --s-spingarn:#D4EEF3;
+  --paper:#FBF7EE; --paper-edge:#E9DFC8; --face:#1A1D24; --cheek:#FF8FA3;
+  --ok:#23805A; --warn:#B0721A;
+  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --serif:"Gowun Batang","Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:18px;line-height:1.6;word-break:keep-all}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--c-plato);outline-offset:2px}
+p{margin:0} h1,h2,h3{margin:0;font-weight:400}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 22px 48px}
+.wrap.wide{max-width:1500px}
+.btn{border:none;border-radius:12px;padding:13px 22px;background:var(--ink);color:#fff;font-weight:600;font-size:17px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.light{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.big{font-size:20px;padding:16px 28px}
+.muted{color:var(--muted)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+
+/* 상단바 */
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.who{font-family:var(--display);font-size:26px}
+.conn{font-size:13px;padding:4px 10px;border-radius:20px;background:var(--soft);color:var(--muted)}
+.conn.on{background:#DDF1E6;color:var(--ok)}
+.steps{display:flex;gap:6px;flex:1;min-width:260px}
+.steps div{flex:1}
+.steps i{display:block;height:6px;border-radius:3px;background:var(--line)}
+.steps span{display:block;font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.steps .open i{background:var(--muted)}
+.steps .now i{background:var(--ink)} .steps .now span{color:var(--ink);font-weight:600}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:6px 14px;font-size:15px}
+.tab[aria-current="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab:disabled{opacity:.4}
+
+/* 첫 화면 */
+.pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:22px}
+.pick button{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;text-align:left}
+.pick b{display:block;font-family:var(--display);font-size:30px;font-weight:400}
+
+/* 내용 카드 */
+.paper{background:var(--paper);border:1px solid var(--paper-edge);border-radius:20px;padding:clamp(20px,3vw,38px)}
+.tag{display:inline-block;font-size:14px;font-weight:600;padding:3px 12px;border-radius:30px;background:var(--surface);border:1px solid var(--line);margin-bottom:10px}
+.title{font-family:var(--display);font-size:clamp(30px,4vw,48px);line-height:1.2;margin-bottom:14px}
+.story p{font-family:var(--serif);font-size:clamp(19px,2vw,24px);line-height:1.85}
+.story p+p{margin-top:14px}
+.story .voice{font-weight:700}
+.fig{margin:0 0 18px}
+.fig svg{display:block;width:100%;height:auto;max-height:30vh}
+.q{font-family:var(--display);font-size:clamp(24px,3vw,34px);margin-top:18px}
+.scaleline{display:flex;justify-content:space-between;font-size:15px;font-weight:600;margin-top:6px}
+
+/* 잠금 화면 */
+.locked{text-align:center;padding:60px 20px;background:var(--surface);border:2px dashed var(--line);border-radius:20px}
+.locked h2{font-family:var(--display);font-size:32px;margin:10px 0}
+.keyrow{display:flex;gap:8px;justify-content:center;margin-top:18px}
+.keyrow input{border:1px solid var(--line);border-radius:10px;padding:12px;width:200px;text-align:center;font-size:18px}
+
+/* 입력 */
+.form{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,32px);display:flex;flex-direction:column;gap:16px}
+.form h2{font-family:var(--display);font-size:30px}
+.scores{display:grid;grid-template-columns:repeat(11,1fr);gap:6px}
+.scores button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 0;font-family:var(--display);font-size:22px}
+.scores button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);font-family:var(--serif);font-size:19px;resize:vertical}
+.hint{font-size:15px;color:var(--muted)}
+
+/* AI 응답 */
+.ai{background:#F1F4FC;border:1px solid #D3DCF3;border-radius:20px;padding:clamp(20px,3vw,32px)}
+.ai h3{font-family:var(--display);font-size:26px;color:var(--c-plato);margin-bottom:10px}
+.ai .text{font-family:var(--serif);font-size:20px;line-height:1.85;white-space:pre-wrap}
+.ai .note{font-size:13px;color:var(--muted);margin-top:12px}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid #C7D2F0;border-top-color:var(--c-plato);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* 결과 */
+.done{background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--ok);border-radius:16px;padding:20px 24px}
+.done b{font-family:var(--display);font-size:26px;font-weight:400}
+
+/* 교사 화면 */
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
+@media (max-width:1000px){.grid2{grid-template-columns:1fr}}
+.groups{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.gcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:15px}
+.gcard b{font-family:var(--display);font-size:22px;font-weight:400}
+.gcard .s{font-family:var(--display);font-size:20px;color:var(--c-plato)}
+.gcard p{margin-top:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--line);margin-right:6px}
+.dot.y{background:var(--ok)}
+.codes{background:var(--surface);border:1px dashed var(--warn);border-radius:14px;padding:12px 16px;font-size:15px}
+.timer{font-family:var(--display);font-size:34px;font-variant-numeric:tabular-nums;min-width:3.2ch}
+.tiny{background:none;border:none;color:var(--muted);text-decoration:underline;font-size:14px}
+@media (prefers-reduced-motion: reduce){.spin{animation:none}}
+</style>
+<style>
+/* 공지 */
+.notice{border-radius:12px;padding:12px 16px;font-weight:600;background:#FDECEE;color:#9B2C3E;border:1px solid #F3C3CB}
+.notice[hidden]{display:none}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* 타이머 (모둠 상단, 교사 제어) */
+.tpill{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:30px;padding:6px 16px;font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.tpill.paused{background:var(--muted)}
+.tpill.over{background:#C2416A}
+.tpill small{font-family:var(--sans);font-size:12px;opacity:.8}
+.tctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+.tctrl .timer{min-width:3.6ch;text-align:center}
+.tctrl .timer.over{color:#C2416A}
+.tctrl button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 12px;font-size:15px}
+.tctrl button.main{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* 채팅 */
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;margin-top:18px}
+.chat header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line);background:#F1F4FC}
+.chat header b{font-family:var(--display);font-size:24px;font-weight:400;color:var(--c-plato)}
+.msgs{display:flex;flex-direction:column;gap:12px;padding:18px 20px;max-height:52vh;min-height:220px;overflow-y:auto}
+.msg{max-width:82%;border-radius:16px;padding:12px 16px;font-size:18px;line-height:1.7;white-space:pre-wrap}
+.msg.ai{align-self:flex-start;background:#EEF2FB;border:1px solid #D3DCF3;font-family:var(--serif)}
+.msg.user{align-self:flex-end;background:var(--ink);color:#fff}
+.msg .who{display:block;font-family:var(--sans);font-size:12px;font-weight:600;opacity:.7;margin-bottom:4px}
+.msg.typing{color:var(--muted)}
+.composer{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--line);align-items:flex-end}
+.composer textarea{min-height:56px;max-height:160px;font-size:18px}
+.composer .btn{flex:0 0 auto}
+.chatnote{font-size:13px;color:var(--muted);padding:0 20px 14px}
+
+.gcard .last{margin-top:6px;font-size:13px;color:var(--muted);border-left:3px solid var(--line);padding-left:8px}
+
+/* 활동 보드 */
+.board{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 20px}
+.bhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bhead b{font-family:var(--display);font-size:28px;font-weight:400}
+.spec{position:relative;height:150px;margin:14px 18px 8px}
+.spec .axis{position:absolute;left:0;right:0;bottom:30px;height:6px;border-radius:3px;background:linear-gradient(90deg,#C2416A,#DDE1E7 50%,#177A8D)}
+.spec .tick{position:absolute;bottom:4px;transform:translateX(-50%);font-size:13px;color:var(--muted)}
+.spec .pin{position:absolute;transform:translateX(-50%);width:28px;height:28px;border-radius:50%;color:#fff;font-family:var(--display);font-size:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px #00000022}
+.spec .end{position:absolute;top:0;font-size:13px;font-weight:600}
+.spec .end.l{left:0;color:#C2416A}.spec .end.r{right:0;color:#177A8D}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:10px}
+.post{background:var(--bg);border:1px solid var(--line);border-top:6px solid;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.post .ptop{display:flex;justify-content:space-between;align-items:baseline}
+.post .ptop b{font-family:var(--display);font-size:22px;font-weight:400}
+.post .me{font-family:var(--sans);font-size:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:1px 8px;color:var(--muted)}
+.post .pscore{font-family:var(--display);font-size:30px}
+.post .preason{font-family:var(--serif);font-size:18px;line-height:1.7}
+.like{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:4px 14px;font-size:14px}
+.like.on{background:#FDECEE;border-color:#F3C3CB;color:#9B2C3E}
+.like:disabled{opacity:.6;cursor:default}
+.cmts p{font-size:15px;margin-top:4px}
+.cin{display:flex;gap:6px}
+.cin input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:15px;background:var(--surface)}
+.cin .btn{padding:8px 14px;font-size:14px}
+.msg .fb{display:block;font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:6px}
+</style>
+
+</head>
+<body>
+<main id="app" class="wrap"></main>
+<script>
+(function(){
+"use strict";
+var C=window.CONFIG;
+
+/* ================= 내용 ================= */
+var CASE={
+  tag:"작가의 문제", title:"우리 학교 벽화, 어떻게 해야 할까?",
+  story:[
+    "우리 학교 본관 외벽에는 길이 40m의 벽화 「함께 자라는 숲」이 있습니다. 10년 전, 이 학교 졸업생이자 지금은 세계적으로 인정받는 화가 한서진이 후배들과 함께 그리기 시작했고, 이후 해마다 3학년이 졸업 전에 한 칸씩 이어 그려 왔습니다. 올해 3학년의 빈칸은 다음 주에 채워질 예정이었죠.",
+    "그런데 한서진이 과거 미술 학원을 운영하며 10대 수강생들에게 수년간 폭언과 폭행을 해 온 사실이 드러났고, 법원은 유죄를 확정했습니다. 학생 대의원회인 여러분이 학교에 의견을 내야 합니다."
+  ],
+  question:"이 벽화를 어떻게 해야 할까?", low:"0점 전부 지운다", high:"10점 그대로 보존한다"
+};
+var ENVS=[
+  {title:"1,200명의 손", tag:"작품의 문제", fig:"hands",
+   body:["벽화에서 한서진이 직접 그린 부분은 가운데 나무 한 그루뿐입니다. 나머지는 지난 10년간 졸업생 1,200명이 한 칸씩 그려 넣은 것이죠. 졸업생 커뮤니티에 이런 글이 올라왔습니다.",
+         {voice:"“그 벽에는 제 열아홉 살이 있어요. 그 사람 때문에 우리 모두의 그림까지 지워야 하나요?”"},
+         "벽화 일부만 지우는 건 기술적으로 불가능하다는 복원 업체의 답변도 왔습니다."]},
+  {title:"입학식의 약속", tag:"사회의 문제", fig:"ceremony",
+   body:["이 벽화 앞에서는 해마다 입학식이 열립니다. 교장 선생님은 신입생들에게 늘 이렇게 말해 왔어요. “선배 한서진처럼 큰 꿈을 꾸세요.” 피해자 중 한 명인 우리 학교 졸업생이 학교에 편지를 보냈습니다.",
+         {voice:"“벽화를 부수라는 게 아니에요. 다만 그 사람의 이름 앞에서 후배들이 꿈을 배우는 일은 멈춰 주세요. 제가 그 학원에서 배운 건 꿈이 아니라 두려움이었으니까요.”"}]}
+];
+var PHASES=[
+  {id:"case",name:"안건"},{id:"env1",name:"봉투 1"},{id:"env2",name:"봉투 2"},
+  {id:"chat",name:"길라잡이와 토론"},{id:"final",name:"최종 결론과 활동 보드"}
+];
+var NOTICE="모둠의 이유를 조금 더 자세하고 구체적으로 작성해 주세요!";
+
+/* AI 연결이 안 될 때 쓰는 미리 쓴 응답 */
+var FALLBACK_FIRST={
+  low:"우리 모둠은 작가의 잘못을 무겁게 보고 벽화를 지우는 쪽으로 판단했네요. 그런데 벽화에서 화가가 직접 그린 건 가운데 나무 한 그루뿐이고, 나머지는 졸업생 1,200명이 그린 칸이에요. 작가의 잘못 때문에 잘못 없는 1,200명의 그림까지 사라져도 괜찮다고 볼 수 있을까요?",
+  mid:"우리 모둠은 작품의 가치와 피해자의 아픔 사이에서 고민하고 있네요. 피해자는 벽화를 부수라는 게 아니라, 그 사람의 이름 앞에서 후배들이 꿈을 배우는 일을 멈춰 달라고 했어요. 벽화를 남기면서도 피해자를 존중할 방법이 있다면, 모둠의 점수가 바뀔까요?",
+  high:"우리 모둠은 작품과 1,200명의 추억을 지키는 쪽으로 판단했네요. 그런데 해마다 이 벽화 앞 입학식에서 “선배 한서진처럼 큰 꿈을 꾸세요”라는 말이 이어져 왔어요. 벽화를 그대로 둔다면, 후배들은 그 앞에서 무엇을 배우게 될까요?"
+};
+var FALLBACK_FOLLOW=[
+  "좋은 반론이에요. 그런데 그 기준을 우리 학교의 다른 작품이나 교가에도 똑같이 적용할 수 있을까요?",
+  "그 생각에 동의하지 않는 사람이 있다면, 그 사람은 어떤 이유를 댈까요? 그 이유에 어떻게 답하겠어요?",
+  "그 판단으로 가장 크게 영향받는 사람은 누구일까요? 그 사람의 입장에서도 받아들일 수 있을까요?"
+];
+function fallbackFirst(s){return s<=3?FALLBACK_FIRST.low:(s>=7?FALLBACK_FIRST.high:FALLBACK_FIRST.mid);}
+
+/* ================= 입력 검증 ================= */
+function isMeaningful(text,min){
+  var t=String(text||"").trim();
+  var compact=t.replace(/\s/g,"");
+  if(compact.length<min) return false;
+  var jamo=(compact.match(/[ㄱ-ㅎㅏ-ㅣ]/g)||[]).length;
+  if(jamo/compact.length>0.3) return false;                 // ㅋㅋㅋ, ㅠㅠ, ㅎㅎ
+  var words=(compact.match(/[가-힣A-Za-z0-9]/g)||[]).length;
+  if(words/compact.length<0.6) return false;                // 기호·이모지 위주
+  if(/(.{1,3})\1{3,}/.test(compact)) return false;          // 뿅뿅뿅뿅, 아아아아
+  var uniq={}; for(var i=0;i<compact.length;i++)uniq[compact[i]]=1;
+  if(Object.keys(uniq).length < Math.min(8, Math.ceil(compact.length*0.35))) return false;  // 같은 글자만 반복
+  return true;
+}
+
+/* ================= 벽화 그림 ================= */
+function muralSVG(mode){
+  var F="Do Hyeon, sans-serif", keys=["plato","tolstoy","confucius","xunzi","wilde","spingarn"];
+  var x0=20,y0=30,W=760,H=150,cols=16,rows=3,cw=W/cols,rh=H/rows;
+  var top = mode==="hands"?-62:(mode==="ceremony"?-50:-8), bottom = mode==="ceremony"?300:248;
+  var o='<svg viewBox="0 '+top+' 800 '+(bottom-top)+'" role="img" aria-label="벽화 「함께 자라는 숲」 그림">';
+  o+='<rect x="0" y="'+(y0+H+4)+'" width="800" height="10" rx="3" fill="var(--line)"/>';
+  o+='<rect x="'+(x0-8)+'" y="'+(y0-8)+'" width="'+(W+16)+'" height="'+(H+12)+'" rx="6" fill="var(--paper-edge)"/>';
+  for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){
+    if(c===7||c===8)continue;
+    var x=x0+c*cw,y=y0+r*rh,i=(r*cols+c),k=keys[(i*5+r)%6],cx=x+cw/2,cy=y+rh/2;
+    var last=(r===rows-1&&c===cols-1);
+    if(last){o+='<rect x="'+(x+2)+'" y="'+(y+2)+'" width="'+(cw-4)+'" height="'+(rh-4)+'" rx="3" fill="var(--surface)" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="4 3"/><text x="'+cx+'" y="'+(cy+7)+'" text-anchor="middle" font-family="'+F+'" font-size="20" fill="var(--muted)">?</text>';continue;}
+    var dim = mode==="hands" ? '' : '';
+    o+='<rect x="'+(x+2)+'" y="'+(y+2)+'" width="'+(cw-4)+'" height="'+(rh-4)+'" rx="3" fill="var(--s-'+k+')"/>';
+    var m=i%4, col="var(--c-"+k+")";
+    if(m===0) o+='<rect x="'+(cx-1.5)+'" y="'+(cy+2)+'" width="3" height="10" fill="#8A5A2B"/><circle cx="'+cx+'" cy="'+(cy-3)+'" r="9" fill="'+col+'"/>';
+    else if(m===1) o+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="'+col+'"/><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="none" stroke="'+col+'" stroke-width="2" stroke-dasharray="2 4"/>';
+    else if(m===2) o+='<path d="M'+cx+' '+(cy+9)+' C'+(cx-14)+' '+(cy-1)+' '+(cx-7)+' '+(cy-12)+' '+cx+' '+(cy-4)+' C'+(cx+7)+' '+(cy-12)+' '+(cx+14)+' '+(cy-1)+' '+cx+' '+(cy+9)+'Z" fill="'+col+'"/>';
+    else o+='<g fill="'+col+'"><circle cx="'+cx+'" cy="'+(cy-7)+'" r="4.5"/><circle cx="'+(cx+7)+'" cy="'+cy+'" r="4.5"/><circle cx="'+cx+'" cy="'+(cy+7)+'" r="4.5"/><circle cx="'+(cx-7)+'" cy="'+cy+'" r="4.5"/></g><circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="#F5B83D"/>';
+  }
+  /* 가운데 큰 나무 */
+  var tx=x0+7*cw, tw=2*cw, tcx=tx+tw/2;
+  o+='<rect x="'+(tx+2)+'" y="'+(y0+2)+'" width="'+(tw-4)+'" height="'+(H-4)+'" rx="3" fill="var(--surface)"/>';
+  o+='<rect x="'+(tcx-6)+'" y="'+(y0+H-58)+'" width="12" height="56" fill="#8A5A2B"/>';
+  o+='<circle cx="'+tcx+'" cy="'+(y0+52)+'" r="34" fill="var(--c-confucius)"/><circle cx="'+(tcx-26)+'" cy="'+(y0+72)+'" r="22" fill="var(--c-confucius)" opacity=".85"/><circle cx="'+(tcx+26)+'" cy="'+(y0+72)+'" r="22" fill="var(--c-confucius)" opacity=".85"/>';
+  if(mode==="hands"){
+    var L=x0, R=x0+W;
+    o+='<path d="M'+(tx+4)+' -6 V-16 H'+(tx+tw-4)+' V-6" fill="none" stroke="var(--ink)" stroke-width="4"/>';
+    o+='<text x="'+tcx+'" y="-24" text-anchor="middle" font-family="'+F+'" font-size="30" fill="var(--ink)">한서진</text>';
+    o+='<path d="M'+(L+2)+' -6 V-16 H'+(tx-6)+' V-6 M'+(tx+tw+6)+' -6 V-16 H'+(R-2)+' V-6" fill="none" stroke="var(--c-plato)" stroke-width="4"/>';
+    o+='<text x="'+((L+tx)/2)+'" y="-24" text-anchor="middle" font-family="'+F+'" font-size="30" fill="var(--c-plato)">졸업생들</text>';
+    o+='<text x="'+((tx+tw+R)/2)+'" y="-24" text-anchor="middle" font-family="'+F+'" font-size="30" fill="var(--c-plato)">졸업생들</text>';
+  }
+  if(mode==="ceremony"){
+    o+='<rect x="150" y="-44" width="500" height="54" rx="8" fill="var(--c-tolstoy)"/><text x="400" y="-7" text-anchor="middle" font-family="'+F+'" font-size="30" fill="#fff">선배 한서진처럼 큰 꿈을 꾸세요</text>';
+    o+='<rect x="372" y="'+(y0+H+18)+'" width="56" height="30" rx="4" fill="var(--ink)" opacity=".85"/>';
+    for(var rr=0;rr<3;rr++)for(var cc=0;cc<20;cc++){var px=130+cc*28+(rr%2)*8,py=y0+H+64+rr*20;o+='<circle cx="'+px+'" cy="'+py+'" r="6" fill="var(--muted)" opacity="'+(0.55+rr*0.15)+'"/>';}
+  }
+  if(mode==="base"){
+    var lx=x0+15*cw+cw/2;
+    o+='<text x="'+(lx-6)+'" y="'+(y0+H+40)+'" text-anchor="end" font-family="'+F+'" font-size="26" fill="var(--muted)">올해 3학년의 빈칸 →</text>';
+  }
+  o+='<text x="'+(mode==="base"?x0:400)+'" y="'+(y0+H+40)+'" text-anchor="'+(mode==="base"?"start":"middle")+'" font-family="'+F+'" font-size="26" fill="var(--ink)">'+(mode==="ceremony"?"":"「함께 자라는 숲」")+'</text>';
+  return o+'</svg>';
+}
+
+
+
+/* ================= 상태 ================= */
+var app=document.getElementById("app");
+var role=null, group=null, phase=0, view=0;
+var mine={chat:[]}, groupsData={};
+var timer={duration:C.timerDefault, remaining:C.timerDefault, running:false, endsAt:0};
+var live=false, useLive=false, db=null, ref=null, offset=0;
+var sending=false;
+var LKEY="envelope3-"+C.sessionId;
+
+function now(){return Date.now()+offset;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function lsKey(){return LKEY+"-"+(role==="teacher"?"t":"g"+group);}
+function saveLocal(){try{localStorage.setItem(lsKey(),JSON.stringify({phase:phase,view:view,mine:mine,timer:timer}));}catch(e){}}
+function loadLocal(){try{var r=JSON.parse(localStorage.getItem(lsKey())||"null");if(r){phase=r.phase||0;view=r.view||0;mine=r.mine||{chat:[]};if(!mine.chat)mine.chat=[];if(r.timer&&role==="teacher")timer=r.timer;}}catch(e){}}
+
+/* ================= 실시간 연동 ================= */
+function initLive(){
+  if(!C.firebase||!window.firebase) return;
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(C.firebase);
+    db=firebase.database(); ref=db.ref("sessions/"+C.sessionId); useLive=true;
+    db.ref(".info/connected").on("value",function(s){live=!!s.val();paintBadge();});
+    db.ref(".info/serverTimeOffset").on("value",function(s){offset=s.val()||0;});
+    ref.child("phase").on("value",function(s){
+      var v=s.val(); if(typeof v!=="number")return;
+      var was=phase; phase=v; if(role==="group"&&v>was) view=v; saveLocal(); render();
+    });
+    ref.child("timer").on("value",function(s){var v=s.val(); if(v){timer=v; paintTimer();}});
+    ref.child("board").on("value",function(s){boardData=s.val()||{}; renderBoard();});
+    if(role==="teacher"){
+      ref.child("groups").on("value",function(s){groupsData=s.val()||{}; if(role==="teacher") renderSide();});
+    }else{
+      ref.child("groups/"+group).once("value",function(s){
+        var v=s.val(); if(v){ mine=Object.assign({chat:[]},v,mine); if(!mine.chat||!mine.chat.length) mine.chat=v.chat||[]; render(); }
+      });
+    }
+  }catch(e){ console.warn("Firebase 연결 실패",e); useLive=false; db=null; ref=null; }
+}
+function pushMine(){ saveLocal(); if(ref) ref.child("groups/"+group).set(mine); }
+function setPhase(n){ phase=Math.max(0,Math.min(PHASES.length-1,n)); saveLocal(); if(ref) ref.child("phase").set(phase); render(); }
+
+/* ================= 타이머 ================= */
+function remainingNow(){ return timer.running ? Math.ceil((timer.endsAt-now())/1000) : timer.remaining; }
+function fmt(s){var neg=s<0; s=Math.abs(s); var m=Math.floor(s/60),x=s%60; return (neg?"-":"")+m+":"+(x<10?"0":"")+x;}
+function pushTimer(){ saveLocal(); if(ref) ref.child("timer").set(timer); paintTimer(); }
+function tStart(){ if(timer.running)return; timer.running=true; timer.endsAt=now()+timer.remaining*1000; pushTimer(); }
+function tPause(){ if(!timer.running)return; timer.remaining=Math.max(0,remainingNow()); timer.running=false; pushTimer(); }
+function tReset(){ timer.running=false; timer.remaining=timer.duration; pushTimer(); }
+function tAdjust(d){
+  if(timer.running){ timer.endsAt+=d*1000; if(timer.endsAt<now()) timer.endsAt=now(); }
+  else{ timer.duration=Math.max(10,timer.duration+d); timer.remaining=Math.max(0,timer.remaining+d); if(timer.remaining===0&&d>0)timer.remaining=d; }
+  pushTimer();
+}
+function paintTimer(){
+  var r=remainingNow(), over=r<=0;
+  var els=document.querySelectorAll("[data-timer]");
+  for(var i=0;i<els.length;i++){
+    var el=els[i]; el.querySelector(".tv").textContent=fmt(Math.max(0,r));
+    el.classList.toggle("over",over);
+    el.classList.toggle("paused",!timer.running&&!over);
+  }
+  var pb=document.getElementById("tplay"); if(pb) pb.textContent=timer.running?"일시정지":"시작";
+  var dur=document.getElementById("tdur"); if(dur) dur.textContent="설정 "+fmt(timer.duration);
+}
+setInterval(function(){ if(timer.running) paintTimer(); },250);
+
+/* ================= 공통 조각 ================= */
+function stepper(cur,openUpTo){
+  return '<nav class="steps" aria-label="활동 단계">'+PHASES.map(function(p,i){
+    return '<div class="'+(i===cur?"now":(i<=openUpTo?"open":""))+'"><i></i><span>'+p.name+'</span></div>';}).join("")+'</nav>';
+}
+function badge(){ return '<span class="conn" id="badge"></span>'; }
+function paintBadge(){
+  var b=document.getElementById("badge"); if(!b)return;
+  if(!useLive){b.className="conn";b.textContent="실시간 연결 없음";return;}
+  b.className="conn "+(live?"on":""); b.textContent=live?"실시간 연결됨":"연결 중…";
+}
+function bodyHTML(arr){return arr.map(function(b){return typeof b==="string"?'<p>'+esc(b)+'</p>':'<p class="voice">'+esc(b.voice)+'</p>';}).join("");}
+function caseCard(){
+  return '<article class="paper"><figure class="fig">'+muralSVG("base")+'</figure><span class="tag">'+CASE.tag+'</span>'+
+  '<h2 class="title">'+CASE.title+'</h2><div class="story">'+CASE.story.map(function(t){return '<p>'+esc(t)+'</p>';}).join("")+'</div>'+
+  '<p class="q">'+CASE.question+'</p><div class="scaleline"><span style="color:var(--c-tolstoy)">'+CASE.low+'</span><span style="color:var(--c-spingarn)">'+CASE.high+'</span></div></article>';
+}
+function envCard(i){
+  var e=ENVS[i];
+  return '<article class="paper"><figure class="fig">'+muralSVG(e.fig)+'</figure><span class="tag">봉투 '+(i+1)+' · '+e.tag+'</span>'+
+  '<h2 class="title">'+e.title+'</h2><div class="story">'+bodyHTML(e.body)+'</div></article>';
+}
+function scoreButtons(name,val){
+  var h='<div class="scores" role="group" aria-label="점수">';
+  for(var i=0;i<=10;i++) h+='<button type="button" data-act="score" data-name="'+name+'" data-v="'+i+'" aria-pressed="'+(val===i)+'">'+i+'</button>';
+  return h+'</div><div class="scaleline"><span style="color:var(--c-tolstoy)">전부 지운다</span><span style="color:var(--c-spingarn)">그대로 보존한다</span></div>';
+}
+var GCOL=["#2F55B4","#C2416A","#23805A","#B0721A","#7B3DB3","#177A8D"];
+function gcol(g){return GCOL[(g-1)%GCOL.length];}
+var boardData={};
+function myPost(){ var f=mine.final||{}, p=mine.provisional||{}; return {group:group,score:f.score,prev:(typeof p.score==="number"?p.score:null),reason:f.reason,at:Date.now()}; }
+function postToBoard(){
+  if(ref){ ref.child("board/"+group).update(myPost()); }
+  else { boardData[group]=Object.assign(boardData[group]||{},myPost()); renderBoard(); }
+}
+function boardHTML(){
+  var posts=Object.keys(boardData).map(function(k){return boardData[k];}).filter(function(x){return x&&typeof x.score==="number";}).sort(function(a,b){return a.group-b.group;});
+  var h='<section class="board"><div class="bhead"><b>우리 반 활동 보드</b><span class="hint">'+posts.length+'개 모둠이 올렸어요'+(useLive?"":" · 실시간 연결이 없어 우리 모둠 글만 보여요")+'</span></div>';
+  // 스펙트럼
+  var stack={};
+  h+='<div class="spec"><div class="axis"></div>';
+  for(var t=0;t<=10;t++) h+='<span class="tick" style="left:'+(t*10)+'%">'+t+'</span>';
+  posts.forEach(function(x){ var k=x.score; stack[k]=(stack[k]||0)+1;
+    h+='<span class="pin" style="left:'+(x.score*10)+'%;bottom:'+(34+(stack[k]-1)*30)+'px;background:'+gcol(x.group)+'">'+x.group+'</span>'; });
+  h+='<span class="end l">전부 지운다</span><span class="end r">그대로 보존한다</span></div>';
+  if(!posts.length) h+='<p class="muted" style="padding:10px 4px">아직 올라온 결론이 없어요. 최종 결론을 저장하면 여기에 붙어요.</p>';
+  h+='<div class="cards">';
+  posts.forEach(function(x){
+    var ch=(typeof x.prev==="number")?x.score-x.prev:null;
+    var likes=x.likes?Object.keys(x.likes).length:0, liked=x.likes&&role==="group"&&x.likes[group];
+    var comments=x.comments?Object.keys(x.comments).map(function(k){return x.comments[k];}).sort(function(a,b){return a.at-b.at;}):[];
+    var own=role==="group"&&x.group===group;
+    h+='<article class="post" style="border-top-color:'+gcol(x.group)+'"><div class="ptop"><b style="color:'+gcol(x.group)+'">'+x.group+'모둠'+(own?' <span class="me">우리 모둠</span>':'')+'</b><span class="pscore">'+x.score+'점</span></div>'+
+      (ch!==null?'<p class="hint">잠정 '+x.prev+'점 → 최종 '+x.score+'점 ('+(ch===0?"그대로":(ch>0?"+"+ch:ch))+')</p>':'')+
+      '<p class="preason">'+esc(x.reason||"")+'</p>';
+    if(C.board.likes) h+='<div class="pact"><button class="like'+(liked?" on":"")+'" data-act="like" data-g="'+x.group+'" '+(role!=="group"||own?"disabled":"")+'>공감 '+likes+'</button></div>';
+    if(C.board.comments){
+      h+='<div class="cmts">'+comments.map(function(c){return '<p><b style="color:'+gcol(c.from)+'">'+c.from+'모둠</b> '+esc(c.text)+'</p>';}).join("")+'</div>';
+      if(role==="group"&&!own) h+='<div class="cin"><input id="cm-'+x.group+'" maxlength="120" placeholder="이 모둠에게 질문이나 의견 남기기"><button class="btn light" data-act="comment" data-g="'+x.group+'">달기</button></div><p class="hint cmsg" id="cmm-'+x.group+'"></p>';
+    }
+    h+='</article>';
+  });
+  return h+'</div></section>';
+}
+function renderBoard(){
+  var el=document.getElementById("board"); if(!el)return;
+  var keep={}; var ins=el.querySelectorAll("input[id^=cm-]"); for(var i=0;i<ins.length;i++) keep[ins[i].id]=ins[i].value;
+  el.innerHTML=boardHTML();
+  for(var k in keep){ var e=document.getElementById(k); if(e) e.value=keep[k]; }
+}
+
+/* ================= 첫 화면 ================= */
+function vPick(){
+  var g=''; for(var i=1;i<=C.groupCount;i++) g+='<button data-act="pick" data-role="group" data-g="'+i+'"><b>'+i+'모둠</b><span class="muted">눌러서 시작</span></button>';
+  return '<h1 class="title" style="margin-top:20px">우리 학교 벽화, 어떻게 해야 할까?</h1><p class="muted">우리 모둠 번호를 골라 주세요.</p><div class="pick">'+g+'</div>';
+}
+
+/* ================= 모둠 화면 ================= */
+function vGroup(){
+  var h='<header class="top"><span class="who">'+group+'모둠</span><button class="tiny" data-act="regroup">모둠 다시 고르기</button>'+stepper(view,phase)+
+    (useLive?'<span class="tpill" data-timer><small>남은 시간</small><span class="tv">0:00</span></span>':'')+badge()+'</header>';
+  h+='<div class="tabs">'+PHASES.map(function(p,i){return '<button class="tab" data-act="view" data-v="'+i+'" aria-current="'+(i===view)+'" '+(i>phase?"disabled":"")+'>'+p.name+'</button>';}).join("")+'</div>';
+  var id=PHASES[view].id;
+  if(id==="case") h+=caseCard();
+  else if(id==="env1") h+=envCard(0);
+  else if(id==="env2") h+=envCard(1);
+  else if(id==="chat") h+=vChat();
+  else h+=vFinal();
+  if(view===phase && phase<PHASES.length-1){
+    var next=PHASES[phase+1];
+    h+= useLive
+      ? '<div class="locked" style="margin-top:20px"><p class="muted">다음 단계</p><h2>'+next.name+'</h2><p class="muted">선생님이 열면 자동으로 나타나요.</p></div>'
+      : '<div class="locked" style="margin-top:20px"><p class="muted">다음 단계</p><h2>'+next.name+'</h2><p class="muted">선생님의 안내를 들은 뒤 넘어가세요.</p><div class="keyrow"><button class="btn big" data-act="selfnext">'+next.name+' 열기</button></div></div>';
+  }
+  return h;
+}
+function vChat(){
+  var p=mine.provisional||{};
+  if(!mine.chat.length){
+    return '<section class="form" id="pform"><h2>우리 모둠의 잠정 결론</h2><p class="hint">봉투 1, 2를 읽고 나눈 이야기를 바탕으로 점수와 이유를 정하면, 길라잡이와 토론이 시작돼요.</p>'+
+      scoreButtons("p",p.score)+
+      '<label for="preason" style="font-weight:600">그렇게 판단한 이유 (15자 이상, 구체적으로)</label>'+
+      '<textarea id="preason" maxlength="500" placeholder="예: 작가의 잘못은 크지만, 잘못 없는 1,200명의 그림까지 지우는 건 지나치다고 생각했다.">'+esc(p.reason||"")+'</textarea>'+
+      '<p class="notice" id="pnotice" role="alert" hidden>'+NOTICE+'</p>'+
+      '<div class="row"><button class="btn big" data-act="startchat">길라잡이와 토론 시작</button></div></section>';
+  }
+  var turns=mine.chat.filter(function(m){return m.role==="user";}).length-1;
+  var limit=turns>=C.chatMaxTurns;
+  var h='<section class="chat"><header><b>길라잡이</b><span class="hint">잠정 결론 '+p.score+'점 · 반론 '+Math.max(0,turns)+'/'+C.chatMaxTurns+'회</span></header><div class="msgs" id="msgs">';
+  mine.chat.forEach(function(m){ h+='<div class="msg '+(m.role==="user"?"user":"ai")+'"><span class="who">'+(m.role==="user"?group+"모둠":"길라잡이")+'</span>'+esc(m.text)+(m.fallback?'<span class="fb">인터넷 연결이 원활하지 않아 준비된 질문을 보여 드렸어요.</span>':'')+'</div>'; });
+  if(sending) h+='<div class="msg ai typing"><span class="who">길라잡이</span><span class="spin"></span>생각하는 중…</div>';
+  h+='</div>';
+  if(limit) h+='<p class="chatnote" style="padding-top:12px">토론은 여기까지예요. 이제 모둠에서 최종 결론을 정해 보세요.</p>';
+  else h+='<div class="composer"><textarea id="cmsg" maxlength="400" placeholder="길라잡이의 질문에 모둠의 생각이나 반론을 써 보세요."></textarea><button class="btn" data-act="send" '+(sending?"disabled":"")+'>보내기</button></div>'+
+         '<p class="notice" id="cnotice" role="alert" hidden style="margin:0 16px 12px">'+NOTICE+'</p>';
+  h+='<p class="chatnote">길라잡이의 말은 정답이 아니에요. 설득되는지, 아닌지 모둠에서 따져 보세요.</p></section>';
+  return h;
+}
+function vFinal(){
+  var f=mine.final||{}, p=mine.provisional||{};
+  var h='';
+  if(!f.saved){
+    h+='<section class="form" id="fform"><h2>우리 모둠의 최종 결론</h2><p class="hint">길라잡이와의 토론을 바탕으로 최종 결론을 정하세요. 잠정 결론'+(typeof p.score==="number"?" "+p.score+"점":"")+'에서 바뀌어도, 그대로여도 괜찮아요.</p>'+
+      scoreButtons("f",f.score)+
+      '<label for="freason" style="font-weight:600">최종 결론의 이유 (15자 이상, 길라잡이의 질문을 어떻게 생각했는지 포함)</label><textarea id="freason" maxlength="500">'+esc(f.reason||"")+'</textarea>'+
+      '<p class="notice" id="fnotice" role="alert" hidden>'+NOTICE+'</p>'+
+      '<div class="row"><button class="btn big" data-act="savefinal">최종 결론을 보드에 올리기</button></div></section>';
+  }else{
+    var ch=typeof p.score==="number"?f.score-p.score:null;
+    h+='<section class="done"><b>'+group+'모둠 최종 결론: '+f.score+'점</b><p style="margin-top:8px;font-family:var(--serif);font-size:19px">'+esc(f.reason)+'</p>'+
+      (ch!==null?'<p class="hint" style="margin-top:8px">잠정 '+p.score+'점 → 최종 '+f.score+'점 ('+(ch===0?"그대로":(ch>0?"+"+ch:ch))+')</p>':'')+
+      '<div class="row" style="margin-top:12px"><span class="hint">우리 반 활동 보드에 올라갔어요.</span><button class="tiny" data-act="editfinal">고치기</button></div></section>';
+    h+='<div id="board" style="margin-top:18px"></div>';
+  }
+  return h;
+}
+
+/* ================= 교사 화면 ================= */
+function vTeacher(){
+  var h='<header class="top"><span class="who">교사 화면</span>'+stepper(phase,phase)+badge()+'</header>';
+  h+='<div class="ctrl" style="margin-bottom:16px">'+
+     '<button class="btn light" data-act="prev" '+(phase===0?"disabled":"")+'>이전 단계</button>'+
+     '<button class="btn big" data-act="next" '+(phase>=PHASES.length-1?"disabled":"")+'>'+(phase<PHASES.length-1?PHASES[phase+1].name+" 열기":"마지막 단계")+'</button>'+
+     '<div class="tctrl"><span class="timer" data-timer><span class="tv">0:00</span></span>'+
+       '<button data-act="tminus">−10초</button><button data-act="tplus">+10초</button>'+
+       '<button class="main" data-act="tplay" id="tplay">시작</button><button data-act="treset">리셋</button><span class="hint" id="tdur"></span></div>'+
+     '<span style="flex:1"></span><button class="tiny" data-act="reset">새 수업으로 초기화</button></div>';
+  var id=PHASES[phase].id, main='';
+  if(id==="case") main=caseCard();
+  else if(id==="env1") main=envCard(0);
+  else if(id==="env2") main=envCard(1);
+  else if(id==="chat") main='<article class="paper"><h2 class="title">길라잡이와 토론하기</h2><div class="story"><p>모둠의 잠정 결론(점수와 구체적인 이유)을 정하면 길라잡이가 반대편에서 질문을 던집니다. AI의 질문에 반론하며 대화를 이어 가세요.</p><p>길라잡이의 말은 정답이 아니에요. 설득되는지, 아닌지 모둠에서 따져 보세요.</p></div></article>';
+  else main='<div id="board"></div>';
+  h+='<div class="grid2"><div>'+main+'</div><aside id="side"></aside></div>';
+  return h;
+}
+function sideHTML(){
+  var h='<h3 style="font-family:var(--display);font-size:24px;margin-bottom:10px">모둠 진행 상황</h3>';
+  if(!useLive) return h+'<p class="muted">실시간 연결을 설정하면 모둠의 잠정 결론, AI와의 대화, 최종 결론이 여기에 모입니다.</p>';
+  h+='<div class="groups">';
+  for(var i=1;i<=C.groupCount;i++){
+    var g=groupsData[i]||{}, p=g.provisional||{}, f=g.final||{}, chat=g.chat||[];
+    var turns=Math.max(0,chat.filter(function(m){return m.role==="user";}).length-1);
+    var last=chat.length?chat[chat.length-1]:null;
+    h+='<div class="gcard"><b>'+i+'모둠</b>'+
+      '<p><span class="dot '+(typeof p.score==="number"?"y":"")+'"></span>잠정 '+(typeof p.score==="number"?'<span class="s">'+p.score+'점</span>':'-')+'</p>'+
+      '<p><span class="dot '+(chat.length?"y":"")+'"></span>AI 토론 '+(chat.length?"반론 "+turns+"회":"-")+'</p>'+
+      (last?'<p class="last">'+(last.role==="user"?"모둠: ":"AI: ")+esc(last.text).slice(0,70)+(last.text.length>70?"…":"")+'</p>':'')+
+      '<p><span class="dot '+(f.saved?"y":"")+'"></span>최종 '+(f.saved?'<span class="s">'+f.score+'점</span>':'-')+'</p></div>';
+  }
+  return h+'</div>';
+}
+function renderSide(){ var s=document.getElementById("side"); if(s) s.innerHTML=sideHTML(); }
+
+/* ================= AI 대화 ================= */
+function apiMessages(){
+  return mine.chat.map(function(m){return {role:m.role==="user"?"user":"assistant",content:m.text};});
+}
+function callAI(){
+  var p=mine.provisional||{};
+  sending=true; render(); scrollChat();
+  var done=false, userTurns=mine.chat.filter(function(m){return m.role==="user";}).length;
+  var to=setTimeout(function(){ if(!done){done=true; replyFallback(userTurns,p.score);} },20000);
+  fetch(C.aiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({group:group,score:p.score,reason:p.reason,messages:apiMessages()})})
+  .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  .then(function(d){ if(done)return; done=true; clearTimeout(to); if(!d||!d.text) throw new Error("빈 응답"); addAI(d.text,false); })
+  .catch(function(){ if(done)return; done=true; clearTimeout(to); replyFallback(userTurns,p.score); });
+}
+function replyFallback(userTurns,score){
+  var t = userTurns<=1 ? fallbackFirst(score) : FALLBACK_FOLLOW[(userTurns-2)%FALLBACK_FOLLOW.length];
+  addAI(t,true);
+}
+function addAI(text,fb){ sending=false; mine.chat.push({role:"ai",text:text,at:Date.now(),fallback:fb}); pushMine(); render(); scrollChat(); }
+function scrollChat(){ var m=document.getElementById("msgs"); if(m) m.scrollTop=m.scrollHeight; }
+
+function showNotice(id,formId){
+  var n=document.getElementById(id); if(n){n.hidden=false;}
+  var f=document.getElementById(formId); if(f){f.classList.remove("shake");void f.offsetWidth;f.classList.add("shake");}
+}
+
+/* ================= 렌더와 이벤트 ================= */
+function render(){
+  app.className=role==="teacher"?"wrap wide":"wrap";
+  if(!role){ app.innerHTML=vPick(); return; }
+  var pr=document.getElementById("preason"), fr=document.getElementById("freason"), cm=document.getElementById("cmsg");
+  if(pr){mine.provisional=mine.provisional||{};mine.provisional.reason=pr.value;}
+  if(fr){mine.final=mine.final||{};mine.final.reason=fr.value;}
+  var draft=cm?cm.value:null;
+  app.innerHTML = role==="teacher"?vTeacher():vGroup();
+  if(draft!==null){ var c2=document.getElementById("cmsg"); if(c2) c2.value=draft; }
+  if(role==="teacher") renderSide();
+  renderBoard(); paintBadge(); paintTimer();
+}
+app.addEventListener("input",function(e){
+  if(e.target.id==="preason"){mine.provisional=mine.provisional||{};mine.provisional.reason=e.target.value;saveLocal();}
+  if(e.target.id==="freason"){mine.final=mine.final||{};mine.final.reason=e.target.value;saveLocal();}
+});
+app.addEventListener("keydown",function(e){
+  if(e.target.id==="cmsg"&&e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); sendMsg(); }
+});
+function sendMsg(){
+  if(sending) return;
+  var c=document.getElementById("cmsg"); if(!c) return;
+  var t=c.value.trim();
+  if(!isMeaningful(t,C.chatMinLength)){ showNotice("cnotice","msgs"); return; }
+  mine.chat.push({role:"user",text:t,at:Date.now()}); c.value=""; pushMine(); callAI();
+}
+var armed=false;
+app.addEventListener("click",function(e){
+  var b=e.target.closest("[data-act]"); if(!b||b.disabled) return;
+  var a=b.getAttribute("data-act");
+  if(a==="pick"){
+    role=b.getAttribute("data-role"); group=role==="group"?+b.getAttribute("data-g"):null;
+    location.hash=role==="teacher"?"teacher":"group-"+group;
+    loadLocal(); initLive(); render(); return;
+  }
+  if(a==="regroup"){ if(!confirm("모둠을 다시 고를까요? 이 기기에서 쓰던 내용은 그대로 남아요.")) return; location.hash=""; location.reload(); return; }
+  if(a==="view"){ view=+b.getAttribute("data-v"); saveLocal(); render(); window.scrollTo(0,0); if(PHASES[view].id==="chat") scrollChat(); return; }
+  if(a==="selfnext"){ if(phase<PHASES.length-1){phase++;view=phase;saveLocal();render();window.scrollTo(0,0);} return; }
+  if(a==="score"){
+    var key=b.getAttribute("data-name")==="p"?"provisional":"final";
+    mine[key]=mine[key]||{}; mine[key].score=+b.getAttribute("data-v"); saveLocal(); render(); return;
+  }
+  if(a==="startchat"){
+    var p=mine.provisional||{}, pr=document.getElementById("preason"); p.reason=pr?pr.value.trim():"";
+    if(typeof p.score!=="number"){ alert("먼저 0~10 사이에서 점수를 골라 주세요."); return; }
+    if(!isMeaningful(p.reason,C.reasonMinLength)){ showNotice("pnotice","pform"); return; }
+    mine.provisional=p; p.at=Date.now();
+    mine.chat=[{role:"user",text:"잠정 결론: "+p.score+"점\n이유: "+p.reason,at:Date.now()}];
+    pushMine(); callAI(); return;
+  }
+  if(a==="send"){ sendMsg(); return; }
+  if(a==="savefinal"){
+    var f=mine.final||{}, fr=document.getElementById("freason"); f.reason=fr?fr.value.trim():"";
+    if(typeof f.score!=="number"){ alert("먼저 0~10 사이에서 점수를 골라 주세요."); return; }
+    if(!isMeaningful(f.reason,C.reasonMinLength)){ showNotice("fnotice","fform"); return; }
+    f.saved=true; f.at=Date.now(); mine.final=f; pushMine(); postToBoard(); render(); return;
+  }
+  if(a==="editfinal"){ mine.final.saved=false; pushMine(); render(); return; }
+  if(a==="like"){
+    var tg=+b.getAttribute("data-g"); if(!ref||tg===group) return;
+    var lk=ref.child("board/"+tg+"/likes/"+group);
+    lk.once("value",function(v){ v.val()?lk.remove():lk.set(true); }); return;
+  }
+  if(a==="comment"){
+    var cg=+b.getAttribute("data-g"), inp=document.getElementById("cm-"+cg), msg=document.getElementById("cmm-"+cg);
+    var txt=inp?inp.value.trim():"";
+    if(!isMeaningful(txt,5)){ if(msg) msg.textContent="조금 더 구체적으로 남겨 주세요."; return; }
+    if(!ref){ if(msg) msg.textContent="실시간 연결이 있어야 댓글을 남길 수 있어요."; return; }
+    ref.child("board/"+cg+"/comments").push({from:group,text:txt,at:Date.now()}); inp.value=""; if(msg) msg.textContent=""; return;
+  }
+  /* 교사 */
+  if(a==="next"){ setPhase(phase+1); return; }
+  if(a==="prev"){ setPhase(phase-1); return; }
+  if(a==="tplay"){ timer.running?tPause():tStart(); return; }
+  if(a==="treset"){ tReset(); return; }
+  if(a==="tplus"){ tAdjust(10); return; }
+  if(a==="tminus"){ tAdjust(-10); return; }
+  if(a==="reset"){
+    if(!armed){ armed=true; b.textContent="한 번 더 누르면 모든 모둠 기록이 지워져요"; setTimeout(function(){armed=false;if(b.isConnected)b.textContent="새 수업으로 초기화";},3000); return; }
+    armed=false; phase=0; groupsData={}; timer={duration:C.timerDefault,remaining:C.timerDefault,running:false,endsAt:0};
+    boardData={}; if(ref) ref.set({phase:0,timer:timer,groups:null,board:null});
+    saveLocal(); render(); return;
+  }
+});
+
+/* 주소 뒤 #teacher, #group-1 로 바로 들어가기 */
+var hm=(location.hash||"").match(/^#(teacher|group-(\d+))$/);
+if(hm){ role=hm[1]==="teacher"?"teacher":"group"; group=hm[2]?+hm[2]:null; loadLocal(); initLive(); }
+render();
+})();
+</script>
+</body>
+</html>
