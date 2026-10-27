@@ -100,8 +100,11 @@ async function callGemini(system, messages) {
   });
   if (!r.ok) throw new Error("Gemini " + r.status + " " + (await r.text()).slice(0, 200));
   const d = await r.json();
-  const parts = (d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || [];
-  return parts.map(p => p.text || "").join("").trim();
+  const cand = d.candidates && d.candidates[0];
+  const parts = (cand && cand.content && cand.content.parts) || [];
+  const text = parts.filter(p => !p.thought).map(p => p.text || "").join("").trim();
+  if (!text) throw new Error("빈 응답 (finishReason: " + (cand && cand.finishReason) + ", block: " + (d.promptFeedback && d.promptFeedback.blockReason) + ")");
+  return text;
 }
 
 async function callAnthropic(system, messages) {
@@ -141,11 +144,18 @@ export default async function handler(req, res) {
     if (provider === "openai") text = await callOpenAI(system, messages);
     else if (provider === "gemini") text = await callGemini(system, messages);
     else if (provider === "anthropic") text = await callAnthropic(system, messages);
-    else { res.status(500).json({ error: "AI API 키가 설정되지 않았습니다." }); return; }
+    else { res.status(500).json({ error: "AI API 키가 설정되지 않았습니다.", reason: "nokey" }); return; }
     if (!text) throw new Error("빈 응답");
     res.status(200).json({ text, provider });
   } catch (e) {
-    console.error(e);
-    res.status(502).json({ error: "AI 응답 실패" });
+    const msg = String(e && e.message || e);
+    console.error("[길라잡이 오류]", provider, msg);
+    let reason = "unknown";
+    if (/ 400 /.test(msg) && /key/i.test(msg)) reason = "key";
+    else if (/ 40[13] /.test(msg)) reason = "key";
+    else if (/ 404 /.test(msg)) reason = "model";
+    else if (/ 429 /.test(msg)) reason = "quota";
+    else if (/빈 응답/.test(msg)) reason = "empty";
+    res.status(502).json({ error: "AI 응답 실패", reason, detail: msg.slice(0, 300) });
   }
 }

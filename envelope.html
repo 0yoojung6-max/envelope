@@ -18,18 +18,19 @@ window.CONFIG = {
   sessionId: "class1",           // 리허설과 본 수업을 나누려면 이름을 바꾸세요
   groupCount: 4,
   // Firebase 실시간 데이터베이스 설정 (교사 제어, 타이머 동기화, 모둠 결과 모으기)
-  firebase: null,
+  firebase: {
+    apiKey: "AIzaSyCtLSE3pT5S_jJkDjZvfwmgOK7Zc0vJ4Iw",
+    authDomain: "envelope-33fe8.firebaseapp.com",
+    databaseURL: "https://envelope-33fe8-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "envelope-33fe8"
+  },
   /* 예시
   firebase: {
-  apiKey: "AIzaSyCtLSE3pT5S_jJkDjZvfwmgOK7Zc0vJ4Iw",
-  authDomain: "envelope-33fe8.firebaseapp.com",
-  databaseURL: "https://envelope-33fe8-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "envelope-33fe8",
-  storageBucket: "envelope-33fe8.firebasestorage.app",
-  messagingSenderId: "438433623115",
-  appId: "1:438433623115:web:1cbebeacbabbbf385af1ce",
-  measurementId: "G-7ZGEC91K41"
-},
+    apiKey: "...",
+    authDomain: "....firebaseapp.com",
+    databaseURL: "https://....firebasedatabase.app",
+    projectId: "..."
+  },
   */
   aiEndpoint: "/api/chat",       // 길라잡이(AI) 서버 함수
   reasonMinLength: 15,           // 잠정·최종 결론 이유의 최소 글자 수 (띄어쓰기 제외)
@@ -492,7 +493,7 @@ function vChat(){
   var turns=mine.chat.filter(function(m){return m.role==="user";}).length-1;
   var limit=turns>=C.chatMaxTurns;
   var h='<section class="chat"><header><b>길라잡이</b><span class="hint">잠정 결론 '+p.score+'점 · 반론 '+Math.max(0,turns)+'/'+C.chatMaxTurns+'회</span></header><div class="msgs" id="msgs">';
-  mine.chat.forEach(function(m){ h+='<div class="msg '+(m.role==="user"?"user":"ai")+'"><span class="who">'+(m.role==="user"?group+"모둠":"길라잡이")+'</span>'+esc(m.text)+(m.fallback?'<span class="fb">인터넷 연결이 원활하지 않아 준비된 질문을 보여 드렸어요.</span>':'')+'</div>'; });
+  mine.chat.forEach(function(m){ h+='<div class="msg '+(m.role==="user"?"user":"ai")+'"><span class="who">'+(m.role==="user"?group+"모둠":"길라잡이")+'</span>'+esc(m.text)+(m.fallback?'<span class="fb">길라잡이가 연결되지 않아 준비된 질문을 보여 드렸어요.'+(m.why?' (원인: '+esc(m.why)+')':'')+'</span>':'')+'</div>'; });
   if(sending) h+='<div class="msg ai typing"><span class="who">길라잡이</span><span class="spin"></span>생각하는 중…</div>';
   h+='</div>';
   if(limit) h+='<p class="chatnote" style="padding-top:12px">토론은 여기까지예요. 이제 모둠에서 최종 결론을 정해 보세요.</p>';
@@ -565,18 +566,19 @@ function callAI(){
   var p=mine.provisional||{};
   sending=true; render(); scrollChat();
   var done=false, userTurns=mine.chat.filter(function(m){return m.role==="user";}).length;
-  var to=setTimeout(function(){ if(!done){done=true; replyFallback(userTurns,p.score);} },20000);
+  var to=setTimeout(function(){ if(!done){done=true; replyFallback(userTurns,p.score,"timeout");} },45000);
   fetch(C.aiEndpoint,{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({group:group,score:p.score,reason:p.reason,messages:apiMessages()})})
-  .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-  .then(function(d){ if(done)return; done=true; clearTimeout(to); if(!d||!d.text) throw new Error("빈 응답"); addAI(d.text,false); })
-  .catch(function(){ if(done)return; done=true; clearTimeout(to); replyFallback(userTurns,p.score); });
+  .then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ if(!r.ok){ var er=new Error("HTTP "+r.status); er.reason=d.reason||(r.status===504?"timeout":"http"+r.status); throw er; } return d; }); })
+  .then(function(d){ if(done)return; done=true; clearTimeout(to); if(!d||!d.text){ var er=new Error("빈 응답"); er.reason="empty"; throw er; } addAI(d.text,false); })
+  .catch(function(e){ if(done)return; done=true; clearTimeout(to); replyFallback(userTurns,p.score,(e&&e.reason)||"network"); });
 }
-function replyFallback(userTurns,score){
+var REASONS={timeout:"응답 시간 초과",nokey:"API 키 없음",key:"API 키 오류",model:"모델 이름 오류",quota:"사용 한도 초과",empty:"빈 응답",network:"인터넷 연결 문제",unknown:"알 수 없는 오류"};
+function replyFallback(userTurns,score,reason){
   var t = userTurns<=1 ? fallbackFirst(score) : FALLBACK_FOLLOW[(userTurns-2)%FALLBACK_FOLLOW.length];
-  addAI(t,true);
+  addAI(t,true,REASONS[reason]||reason);
 }
-function addAI(text,fb){ sending=false; mine.chat.push({role:"ai",text:text,at:Date.now(),fallback:fb}); pushMine(); render(); scrollChat(); }
+function addAI(text,fb,why){ sending=false; mine.chat.push({role:"ai",text:text,at:Date.now(),fallback:fb,why:why||null}); pushMine(); render(); scrollChat(); }
 function scrollChat(){ var m=document.getElementById("msgs"); if(m) m.scrollTop=m.scrollHeight; }
 
 function showNotice(id,formId){
