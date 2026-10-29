@@ -100,7 +100,7 @@ p{margin:0} h1,h2,h3{margin:0;font-weight:400}
 .story p+p{margin-top:14px}
 .story .voice{font-weight:700}
 .fig{margin:0 0 18px}
-.fig svg{display:block;width:100%;height:auto;max-height:30vh}
+.fig svg{display:block;width:100%;height:auto;max-height:58vh;border-radius:12px}
 .q{font-family:var(--display);font-size:clamp(24px,3vw,34px);margin-top:18px}
 .scaleline{display:flex;justify-content:space-between;font-size:15px;font-weight:600;margin-top:6px}
 
@@ -207,6 +207,24 @@ textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:
 .cin input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:15px;background:var(--surface)}
 .cin .btn{padding:8px 14px;font-size:14px}
 .msg .fb{display:block;font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:6px}
+
+/* 봉투 열림 효과 */
+.envfx{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgba(243,244,247,.94);animation:fxOut .45s ease 2.3s forwards}
+.envfx .env{position:relative;width:min(380px,72vw);aspect-ratio:3/2;perspective:1000px}
+.envfx .back{position:absolute;inset:0;background:#E3CFA6;border-radius:12px;box-shadow:0 18px 40px rgba(60,40,10,.25)}
+.envfx .letter{position:absolute;left:7%;right:7%;top:8%;height:84%;z-index:1;background:#FFFDF6;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;animation:letterUp .9s cubic-bezier(.2,.8,.2,1) .95s forwards}
+.envfx .letter small{font-size:15px;color:var(--muted);font-weight:600}
+.envfx .letter b{font-family:var(--display);font-weight:400;font-size:clamp(24px,4vw,34px)}
+.envfx .front{position:absolute;inset:0;z-index:2;background:#F1E2C2;border-radius:12px;clip-path:polygon(0 34%,50% 70%,100% 34%,100% 100%,0 100%)}
+.envfx .flap{position:absolute;left:0;right:0;top:0;height:66%;z-index:3;transform-origin:top center;background:linear-gradient(#E9D5AC,#DCC394);clip-path:polygon(0 0,100% 0,50% 100%);border-radius:12px 12px 0 0;animation:flapOpen .75s ease .3s forwards}
+.envfx .seal{position:absolute;left:50%;top:52%;z-index:4;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#C2416A;color:#fff;font-family:var(--display);font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25);animation:sealOff .3s ease .15s forwards}
+.envfx .cap{font-family:var(--display);font-size:clamp(22px,3.4vw,30px);opacity:0;animation:capIn .4s ease 1.3s forwards}
+@keyframes flapOpen{0%{transform:rotateX(0)}100%{transform:rotateX(180deg);z-index:0}}
+@keyframes letterUp{to{transform:translateY(-58%)}}
+@keyframes sealOff{to{transform:scale(.4);opacity:0}}
+@keyframes capIn{to{opacity:1}}
+@keyframes fxOut{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion: reduce){.envfx{display:none}}
 </style>
 
 </head>
@@ -271,48 +289,46 @@ function isMeaningful(text,min){
 
 /* ================= 벽화 그림 ================= */
 function muralSVG(mode){
-  var F="Do Hyeon, sans-serif", keys=["plato","tolstoy","confucius","xunzi","wilde","spingarn"];
-  var x0=20,y0=30,W=760,H=150,cols=16,rows=3,cw=W/cols,rh=H/rows;
-  var top = mode==="hands"?-62:(mode==="ceremony"?-50:-8), bottom = mode==="ceremony"?300:248;
-  var o='<svg viewBox="0 '+top+' 800 '+(bottom-top)+'" role="img" aria-label="벽화 「함께 자라는 숲」 그림">';
-  o+='<rect x="0" y="'+(y0+H+4)+'" width="800" height="10" rx="3" fill="var(--line)"/>';
-  o+='<rect x="'+(x0-8)+'" y="'+(y0-8)+'" width="'+(W+16)+'" height="'+(H+12)+'" rx="6" fill="var(--paper-edge)"/>';
-  for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){
-    if(c===7||c===8)continue;
-    var x=x0+c*cw,y=y0+r*rh,i=(r*cols+c),k=keys[(i*5+r)%6],cx=x+cw/2,cy=y+rh/2;
-    var last=(r===rows-1&&c===cols-1);
-    if(last){o+='<rect x="'+(x+2)+'" y="'+(y+2)+'" width="'+(cw-4)+'" height="'+(rh-4)+'" rx="3" fill="var(--surface)" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="4 3"/><text x="'+cx+'" y="'+(cy+7)+'" text-anchor="middle" font-family="'+F+'" font-size="20" fill="var(--muted)">?</text>';continue;}
-    var dim = mode==="hands" ? '' : '';
-    o+='<rect x="'+(x+2)+'" y="'+(y+2)+'" width="'+(cw-4)+'" height="'+(rh-4)+'" rx="3" fill="var(--s-'+k+')"/>';
-    var m=i%4, col="var(--c-"+k+")";
-    if(m===0) o+='<rect x="'+(cx-1.5)+'" y="'+(cy+2)+'" width="3" height="10" fill="#8A5A2B"/><circle cx="'+cx+'" cy="'+(cy-3)+'" r="9" fill="'+col+'"/>';
-    else if(m===1) o+='<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="'+col+'"/><circle cx="'+cx+'" cy="'+cy+'" r="12" fill="none" stroke="'+col+'" stroke-width="2" stroke-dasharray="2 4"/>';
-    else if(m===2) o+='<path d="M'+cx+' '+(cy+9)+' C'+(cx-14)+' '+(cy-1)+' '+(cx-7)+' '+(cy-12)+' '+cx+' '+(cy-4)+' C'+(cx+7)+' '+(cy-12)+' '+(cx+14)+' '+(cy-1)+' '+cx+' '+(cy+9)+'Z" fill="'+col+'"/>';
-    else o+='<g fill="'+col+'"><circle cx="'+cx+'" cy="'+(cy-7)+'" r="4.5"/><circle cx="'+(cx+7)+'" cy="'+cy+'" r="4.5"/><circle cx="'+cx+'" cy="'+(cy+7)+'" r="4.5"/><circle cx="'+(cx-7)+'" cy="'+cy+'" r="4.5"/></g><circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="#F5B83D"/>';
-  }
-  /* 가운데 큰 나무 */
-  var tx=x0+7*cw, tw=2*cw, tcx=tx+tw/2;
-  o+='<rect x="'+(tx+2)+'" y="'+(y0+2)+'" width="'+(tw-4)+'" height="'+(H-4)+'" rx="3" fill="var(--surface)"/>';
-  o+='<rect x="'+(tcx-6)+'" y="'+(y0+H-58)+'" width="12" height="56" fill="#8A5A2B"/>';
-  o+='<circle cx="'+tcx+'" cy="'+(y0+52)+'" r="34" fill="var(--c-confucius)"/><circle cx="'+(tcx-26)+'" cy="'+(y0+72)+'" r="22" fill="var(--c-confucius)" opacity=".85"/><circle cx="'+(tcx+26)+'" cy="'+(y0+72)+'" r="22" fill="var(--c-confucius)" opacity=".85"/>';
-  if(mode==="hands"){
-    var L=x0, R=x0+W;
-    o+='<path d="M'+(tx+4)+' -6 V-16 H'+(tx+tw-4)+' V-6" fill="none" stroke="var(--ink)" stroke-width="4"/>';
-    o+='<text x="'+tcx+'" y="-24" text-anchor="middle" font-family="'+F+'" font-size="30" fill="var(--ink)">한서진</text>';
-    o+='<path d="M'+(L+2)+' -6 V-16 H'+(tx-6)+' V-6 M'+(tx+tw+6)+' -6 V-16 H'+(R-2)+' V-6" fill="none" stroke="var(--c-plato)" stroke-width="4"/>';
-    o+='<text x="'+((L+tx)/2)+'" y="-24" text-anchor="middle" font-family="'+F+'" font-size="30" fill="var(--c-plato)">졸업생들</text>';
-    o+='<text x="'+((tx+tw+R)/2)+'" y="-24" text-anchor="middle" font-family="'+F+'" font-size="30" fill="var(--c-plato)">졸업생들</text>';
-  }
-  if(mode==="ceremony"){
-    o+='<rect x="150" y="-44" width="500" height="54" rx="8" fill="var(--c-tolstoy)"/><text x="400" y="-7" text-anchor="middle" font-family="'+F+'" font-size="30" fill="#fff">선배 한서진처럼 큰 꿈을 꾸세요</text>';
-    o+='<rect x="372" y="'+(y0+H+18)+'" width="56" height="30" rx="4" fill="var(--ink)" opacity=".85"/>';
-    for(var rr=0;rr<3;rr++)for(var cc=0;cc<20;cc++){var px=130+cc*28+(rr%2)*8,py=y0+H+64+rr*20;o+='<circle cx="'+px+'" cy="'+py+'" r="6" fill="var(--muted)" opacity="'+(0.55+rr*0.15)+'"/>';}
+  /* 실제 벽화 이미지(mural.jpg) 위에 화면별 설명을 겹쳐 그린다. 좌표는 원본 1891×831 기준 */
+  var F="Do Hyeon, 'Apple SD Gothic Neo', sans-serif";
+  var W=1891, H=831;
+  var top = mode==="ceremony"?-120:0, bottom = mode==="ceremony"?H+190:H;
+  var o='<svg viewBox="0 '+top+' '+W+' '+(bottom-top)+'" role="img" aria-label="벽화 「함께 자라는 숲」: 큰 나무의 잎 사이에 졸업생들의 작은 그림들이 열매처럼 달려 있다">';
+  o+='<defs><filter id="lbsh'+mode+'" x="-10%" y="-30%" width="120%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".35"/></filter></defs>';
+  o+='<image href="mural.jpg" x="0" y="0" width="'+W+'" height="'+H+'" preserveAspectRatio="xMidYMid slice"/>';
+  function pill(x,y,w,h,text,bg,fg,size){
+    return '<g filter="url(#lbsh'+mode+')"><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+(h/2)+'" fill="'+bg+'"/></g>'+
+      '<text x="'+(x+w/2)+'" y="'+(y+h/2+size*0.36)+'" text-anchor="middle" font-family="'+F+'" font-size="'+size+'" fill="'+fg+'">'+text+'</text>';
   }
   if(mode==="base"){
-    var lx=x0+15*cw+cw/2;
-    o+='<text x="'+(lx-6)+'" y="'+(y0+H+40)+'" text-anchor="end" font-family="'+F+'" font-size="26" fill="var(--muted)">올해 3학년의 빈칸 →</text>';
+    o+='<circle cx="1684" cy="571" r="66" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-dasharray="14 10"/>';
+    o+='<path d="M1640 628 C1610 670 1580 690 1560 700" stroke="#FFFFFF" stroke-width="5" fill="none"/>';
+    o+=pill(1240,690,330,70,"올해 3학년의 자리","rgba(255,253,246,.95)","#3B3220",40);
   }
-  o+='<text x="'+(mode==="base"?x0:400)+'" y="'+(y0+H+40)+'" text-anchor="'+(mode==="base"?"start":"middle")+'" font-family="'+F+'" font-size="26" fill="var(--ink)">'+(mode==="ceremony"?"":"「함께 자라는 숲」")+'</text>';
+  if(mode==="hands"){
+    o+='<path d="M860 560 C840 640 820 720 790 790 M1080 560 C1100 640 1130 720 1170 790" stroke="#FFFFFF" stroke-width="7" stroke-dasharray="16 12" fill="none"/>';
+    o+=pill(1190,700,360,74,"한서진이 그린 나무","rgba(42,30,18,.9)","#FFF6E0",42);
+    o+='<path d="M1190 737 L1150 735" stroke="rgba(42,30,18,.9)" stroke-width="5"/>';
+    o+='<circle cx="357" cy="460" r="66" fill="none" stroke="#FFFFFF" stroke-width="6"/>';
+    o+='<circle cx="1153" cy="197" r="70" fill="none" stroke="#FFFFFF" stroke-width="6"/>';
+    o+='<path d="M330 600 C340 560 350 545 355 528" stroke="#FFFFFF" stroke-width="5" fill="none"/>';
+    o+=pill(60,600,520,104,"","rgba(255,253,246,.96)","#2F5FA8",40);
+    o+='<text x="320" y="645" text-anchor="middle" font-family="'+F+'" font-size="40" fill="#2F5FA8">열매 하나하나가</text>';
+    o+='<text x="320" y="690" text-anchor="middle" font-family="'+F+'" font-size="40" fill="#2F5FA8">졸업생 1,200명의 그림</text>';
+  }
+  if(mode==="ceremony"){
+    o+='<rect x="0" y="-120" width="'+W+'" height="120" fill="#EDE6D8"/>';
+    o+='<g filter="url(#lbsh'+mode+')"><rect x="480" y="-104" width="930" height="92" rx="12" fill="#C2416A"/></g>';
+    o+='<text x="945" y="-42" text-anchor="middle" font-family="'+F+'" font-size="50" fill="#FFFFFF">선배 한서진처럼 큰 꿈을 꾸세요</text>';
+    o+='<line x1="510" y1="-12" x2="540" y2="40" stroke="#8A2B48" stroke-width="5"/><line x1="1380" y1="-12" x2="1350" y2="40" stroke="#8A2B48" stroke-width="5"/>';
+    o+='<rect x="0" y="'+H+'" width="'+W+'" height="190" fill="#D9CBB0"/>';
+    o+='<rect x="895" y="'+(H-40)+'" width="100" height="70" rx="6" fill="#5B4430"/><rect x="882" y="'+(H-48)+'" width="126" height="14" rx="5" fill="#7A5B3E"/>';
+    for(var rw=0;rw<3;rw++) for(var cc=0;cc<19;cc++){
+      var px=80+cc*96+(rw%2)*48, py=H+70+rw*44;
+      o+='<circle cx="'+px+'" cy="'+(py-18)+'" r="15" fill="'+(rw===0?"#4A4A55":"#3A3A44")+'"/>'+
+         '<path d="M'+(px-24)+' '+(py+18)+' Q'+px+' '+(py-12)+' '+(px+24)+' '+(py+18)+'Z" fill="'+["#2F55B4","#3A3A44","#555F7A"][(cc+rw)%3]+'"/>';
+    }
+  }
   return o+'</svg>';
 }
 
@@ -343,7 +359,7 @@ function initLive(){
     db.ref(".info/serverTimeOffset").on("value",function(s){offset=s.val()||0;});
     ref.child("phase").on("value",function(s){
       var v=s.val(); if(typeof v!=="number")return;
-      var was=phase; phase=v; if(role==="group"&&v>was) view=v; saveLocal(); render();
+      var was=phase; phase=v; if(role==="group"&&v>was){ view=v; fxForPhase(v); } saveLocal(); render();
     });
     ref.child("timer").on("value",function(s){var v=s.val(); if(v){timer=v; paintTimer();}});
     ref.child("board").on("value",function(s){boardData=s.val()||{}; renderBoard();});
@@ -357,7 +373,7 @@ function initLive(){
   }catch(e){ console.warn("Firebase 연결 실패",e); useLive=false; db=null; ref=null; }
 }
 function pushMine(){ saveLocal(); if(ref) ref.child("groups/"+group).set(mine); }
-function setPhase(n){ phase=Math.max(0,Math.min(PHASES.length-1,n)); saveLocal(); if(ref) ref.child("phase").set(phase); render(); }
+function setPhase(n){ var was=phase; phase=Math.max(0,Math.min(PHASES.length-1,n)); saveLocal(); if(ref) ref.child("phase").set(phase); render(); if(phase>was) fxForPhase(phase); }
 
 /* ================= 타이머 ================= */
 function remainingNow(){ return timer.running ? Math.ceil((timer.endsAt-now())/1000) : timer.remaining; }
@@ -383,6 +399,21 @@ function paintTimer(){
   var dur=document.getElementById("tdur"); if(dur) dur.textContent="설정 "+fmt(timer.duration);
 }
 setInterval(function(){ if(timer.running) paintTimer(); },250);
+
+
+/* ================= 봉투 열림 효과 ================= */
+function playEnvelope(i){
+  try{ if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
+  var key=LKEY+"-fx-"+(role==="teacher"?"t":"g"+group)+"-"+i;
+  try{ if(sessionStorage.getItem(key)) return; sessionStorage.setItem(key,"1"); }catch(e){}
+  var e=ENVS[i], d=document.createElement("div");
+  d.className="envfx"; d.setAttribute("aria-hidden","true");
+  d.innerHTML='<div class="env"><div class="back"></div><div class="letter"><small>봉투 '+(i+1)+' · '+e.tag+'</small><b>'+e.title+'</b></div><div class="front"></div><div class="flap"></div><div class="seal">'+(i+1)+'</div></div><p class="cap">봉투 '+(i+1)+'이 열렸어요</p>';
+  document.body.appendChild(d);
+  d.addEventListener("click",function(){ d.remove(); });
+  setTimeout(function(){ if(d.parentNode) d.remove(); },2900);
+}
+function fxForPhase(n){ var id=PHASES[n]&&PHASES[n].id; if(id==="env1") playEnvelope(0); else if(id==="env2") playEnvelope(1); }
 
 /* ================= 공통 조각 ================= */
 function stepper(cur,openUpTo){
@@ -624,7 +655,7 @@ app.addEventListener("click",function(e){
   }
   if(a==="regroup"){ if(!confirm("모둠을 다시 고를까요? 이 기기에서 쓰던 내용은 그대로 남아요.")) return; location.hash=""; location.reload(); return; }
   if(a==="view"){ view=+b.getAttribute("data-v"); saveLocal(); render(); window.scrollTo(0,0); if(PHASES[view].id==="chat") scrollChat(); return; }
-  if(a==="selfnext"){ if(phase<PHASES.length-1){phase++;view=phase;saveLocal();render();window.scrollTo(0,0);} return; }
+  if(a==="selfnext"){ if(phase<PHASES.length-1){phase++;view=phase;saveLocal();render();window.scrollTo(0,0);fxForPhase(phase);} return; }
   if(a==="score"){
     var key=b.getAttribute("data-name")==="p"?"provisional":"final";
     mine[key]=mine[key]||{}; mine[key].score=+b.getAttribute("data-v"); saveLocal(); render(); return;
